@@ -130,7 +130,7 @@ class LaporanController extends Controller
             ->select(
                 '_anggota.id as anggota_id',
                 '_anggota.name as anggota_name',
-                '_anggota.nip as anggota_nip',
+                '_anggota.nik as anggota_nik',
                 '_anggota.image as anggota_image',
                 '_anggota.telphone as anggota_telphone',
                 '_anggota.alamat as anggota_alamat',

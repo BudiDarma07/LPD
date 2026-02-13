@@ -236,7 +236,7 @@ class SimpananController extends Controller
                 'users_created.name as created_by',
                 'users_updated.name as updated_by',
                 '_anggota.name as anggota_name',
-                '_anggota.nip as anggota_nip',
+                '_anggota.nik as anggota_nik',
                 '_anggota.image as anggota_image',
                 '_anggota.telphone as anggota_telphone',
                 '_anggota.alamat as anggota_alamat',

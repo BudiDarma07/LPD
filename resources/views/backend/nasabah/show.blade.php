@@ -31,8 +31,8 @@
                             <td>{{ $anggota->name }}</td>
                         </tr>
                         <tr>
-                            <th>NIP</th>
-                            <td>{{ $anggota->nip }}</td>
+                            <th>NIK</th>
+                            <td>{{ $anggota->nik }}</td>
                         </tr>
                         <tr>
                             <th>Agama</th>

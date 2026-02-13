@@ -23,7 +23,7 @@ class User extends Authenticatable
         'password',
         
         // --- KOLOM DATA ANGGOTA (WAJIB DITAMBAHKAN DISINI) ---
-        'nip',
+        'nik',
         'telphone',
         'jenis_kelamin',
         'agama',

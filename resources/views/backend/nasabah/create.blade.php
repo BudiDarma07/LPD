@@ -31,8 +31,8 @@
                         <label for="password">Password</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <input type="number" class="form-control" value="{{ old('nip')}}" id="nip" name="nip">
-                        <label for="nip">No KTP</label>
+                        <input type="number" class="form-control" value="{{ old('nik')}}" id="nik" name="nik">
+                        <label for="nik">No KTP</label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="tel" class="form-control" value="{{ old('telphone')}}" id="telphone" name="telphone">

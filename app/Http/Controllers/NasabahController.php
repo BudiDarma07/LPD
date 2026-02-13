@@ -63,7 +63,7 @@ class NasabahController extends Controller
             DB::table('_anggota')->insert([
                 'name' => $request->nama,
                 'telphone' => $request->telphone,
-                'nip' => $request->nip,
+                'nik' => $request->nik,
                 'agama' => $request->agama,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'tgl_lahir' => $request->tgl_lahir,
@@ -128,7 +128,7 @@ class NasabahController extends Controller
             DB::table('_anggota')->where('user_id', $id)->update([
                 'name' => $request->nama,
                 'telphone' => $request->telphone,
-                'nip' => $request->nip,
+                'nik' => $request->nik,
                 'agama' => $request->agama,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'tgl_lahir' => $request->tgl_lahir,
@@ -164,7 +164,7 @@ class NasabahController extends Controller
             ->select(
                 'id',
                 'user_id',
-                'nip',
+                'nik',
                 'name',
                 'telphone',
                 'agama',

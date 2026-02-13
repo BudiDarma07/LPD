@@ -25,7 +25,7 @@ class NasabahRequest extends FormRequest
             'nama' => 'required|string|max:255',
             'telphone' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'nip' => 'required|string|max:255',
+            'nik' => 'required|string|max:255',
             'password' => 'required|string|min:8', // Add password validation
             'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu', // Add agama validation
             'jenis_kelamin' => 'required|string|in:Laki-laki,Perempuan',
@@ -48,8 +48,8 @@ class NasabahRequest extends FormRequest
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
             'email.max' => 'Panjang teks untuk Alamat Email maksimal :max karakter.',
-            'nip.required' => 'NIP wajib diisi.',
-            'nip.max' => 'Panjang teks untuk NIP maksimal :max karakter.',
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.max' => 'Panjang teks untuk NIK maksimal :max karakter.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal :min karakter.',
             'agama.required' => 'Agama wajib dipilih.',

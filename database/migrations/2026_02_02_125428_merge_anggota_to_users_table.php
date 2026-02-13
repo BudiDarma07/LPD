@@ -15,8 +15,8 @@ return new class extends Migration
             
             // Cek satu per satu, jika belum ada baru dibuat
             
-            if (!Schema::hasColumn('users', 'nip')) {
-                $table->string('nip')->nullable()->default('-');
+            if (!Schema::hasColumn('users', 'nik')) {
+                $table->string('nik')->nullable()->default('-');
             }
 
             if (!Schema::hasColumn('users', 'telphone')) {
@@ -62,7 +62,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Hapus kolom hanya jika ada
             $columns = [
-                'nip', 'telphone', 'jenis_kelamin', 'agama', 
+                'nik', 'telphone', 'jenis_kelamin', 'agama', 
                 'alamat', 'pekerjaan', 'status_anggota', 
                 'tgl_gabung', 'image'
             ];

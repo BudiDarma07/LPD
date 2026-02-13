@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('_anggota', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id')->index('_anggota_user_id_foreign');
-            $table->string('nip');
+            $table->string('nik');
             $table->string('name');
             $table->string('telphone');
             $table->string('agama')->nullable();

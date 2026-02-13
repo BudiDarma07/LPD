@@ -28,8 +28,8 @@
                                 <td>{{ $detailSimpanan->anggota_name }}</td>
                             </tr>
                             <tr>
-                                <th>NIP Anggota</th>
-                                <td>{{ $detailSimpanan->anggota_nip }}</td>
+                                <th> NIK Anggota</th>
+                                <td>{{ $detailSimpanan->anggota_nik }}</td>
                             </tr>
                             <tr>
                                 <th>No HP Anggota</th>

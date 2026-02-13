@@ -49,8 +49,8 @@
                         <label for="telphone">Telphone</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="nip" name="nip" value="{{ $nasabah->nip }}">
-                        <label for="nip">NIP</label>
+                        <input type="text" class="form-control" id="nik" name="nik" value="{{ $nasabah->nik }}">
+                        <label for="nik">NIK</label>
                     </div>
                     <div class="form-floating mb-3">
                         <select id="agama" name="agama" class="form-select">

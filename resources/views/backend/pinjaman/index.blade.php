@@ -6,7 +6,6 @@
 <div class="container-fluid pt-4 px-4">
     <h2 class="mb-4">Data Pinjaman</h2>
 
-    <!-- Alert Success -->
     @if(Session::has('success'))
     <div id="successAlert" class="alert alert-success alert-dismissible fade show custom-alert" role="alert">
         <h5 class="alert-heading"><i class="icon fas fa-check-circle"></i> Sukses!</h5>
@@ -15,7 +14,6 @@
     </div>
     @endif
 
-    <!-- Alert Error -->
     @if(Session::has('error'))
     <div id="errorAlert" class="alert alert-danger alert-dismissible fade show custom-alert" role="alert">
         <h5 class="alert-heading"><i class="icon fas fa-times-circle"></i> Error!</h5>
@@ -26,37 +24,46 @@
 
     <div class="bg-light rounded h-100 p-4">
         <div class="table-responsive">
-            <div class="mb-3 d-flex justify-content-between">
-                @can('pinjaman-create')
-                <button type="button" class="btn btn-outline-primary rounded-pill m-3" data-bs-toggle="modal" data-bs-target="#buatPinjaman">
-                    <i class="f	fas fa-dollar-sign"></i> Tambah
-                </button>
-                @endcan
-                @include('backend.pinjaman.modal.modalCreate')
-                @include('backend.pinjaman.modal.modalEdit')
+            <div class="mb-3 d-flex justify-content-between flex-wrap gap-2">
+                
+                <div class="d-flex">
+                    @can('pinjaman-create')
+                    <button type="button" class="btn btn-outline-primary rounded-pill me-3" data-bs-toggle="modal" data-bs-target="#buatPinjaman">
+                        <i class="fas fa-dollar-sign"></i> Tambah
+                    </button>
+                    @endcan
+                    
+                    {{-- Pastikan file modal ini tidak memiliki ID element yang bentrok --}}
+                    @include('backend.pinjaman.modal.modalCreate')
+                    @include('backend.pinjaman.modal.modalEdit')
+                </div>
 
-                <!-- Form Laporan Tanggal -->
-                <div class="d-flex align-items-center ms-2">
-                    <span class="me-2">Report</span>
-                    <form id="reportForm" action="{{ route('pinjaman') }}" method="GET" class="d-flex align-items-center">
+                <div class="d-flex align-items-center flex-grow-1 justify-content-end">
+                    
+                    <form id="reportForm" action="{{ route('pinjaman') }}" method="GET" class="d-flex align-items-center me-2">
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        <span class="me-2">Report</span>
                         <input type="date" name="start_date" class="form-control me-2" value="{{ request()->get('start_date') }}" onchange="document.getElementById('reportForm').submit()">
                         <span class="me-2">To</span>
                         <input type="date" name="end_date" class="form-control me-2" value="{{ request()->get('end_date') }}" onchange="document.getElementById('reportForm').submit()">
-
                     </form>
+
                     @can('laporan_pinjaman')
-                    <a href="{{ route('pinjaman.cetak', ['start_date' => request()->get('start_date'), 'end_date' => request()->get('end_date')]) }}" class="btn btn-primary ms-2">
+                    <a href="{{ route('pinjaman.cetak', ['start_date' => request()->get('start_date'), 'end_date' => request()->get('end_date'), 'search' => request()->get('search')]) }}" class="btn btn-primary me-2" target="_blank">
                         <i class="fas fa-print"></i>
                     </a>
                     @endcan
-                </div>
 
-                <!-- Form Pencarian -->
-                <div class="d-flex align-items-center mr-2">
-                    <form id="searchForm" action="{{ route('pinjaman') }}" method="GET" class="input-group">
-                        <div class="form-outline" data-mdb-input-init>
-                            <input id="search-focus" type="search" name="search" id="form1" class="form-control" placeholder="Search" value="{{ request()->get('search') }}" />
-                        </div>
+                    <form id="searchForm" action="{{ route('pinjaman') }}" method="GET" class="input-group" style="max-width: 250px;">
+                        @if(request('start_date'))
+                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                        @endif
+                        @if(request('end_date'))
+                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                        @endif
+                        <input id="search-focus" type="search" name="search" class="form-control" placeholder="Search" value="{{ request()->get('search') }}" />
                         <button type="submit" class="btn btn-outline-primary"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
@@ -78,10 +85,10 @@
                     @foreach($pinjaman as $pinjam)
                     <tr>
                         <td>{{ $pinjam->kodeTransaksiPinjaman }}</td>
-                        <td>{{ tanggal_indonesia($pinjam->tanggal_pinjam),false }}</td>
+                        <td>{{ tanggal_indonesia($pinjam->tanggal_pinjam, false) }}</td>
                         <td>{{ $pinjam->anggota_name }}</td>
                         <td>Rp {{ number_format($pinjam->jml_pinjam, 2, ',', '.') }}</td>
-                        <td>{{ $pinjam->jml_cicilan  }} Bulan</td>
+                        <td>{{ $pinjam->jml_cicilan }} Bulan</td>
                         <td>
                             @if ($pinjam->status_pengajuan == 0)
                             <span class="text-primary">Dibuat</span>
@@ -94,28 +101,36 @@
                             @endif
                         </td>
                         <td>
-
-                            <!-- Edit Button -->
                             @can('pinjaman-edit')
-                            <button type="button" class="btn btn-outline-warning btn-sm m-1" data-bs-toggle="modal" data-bs-target="#editPinjaman" data-id="{{ $pinjam->pinjaman_id }}" data-tanggal_pinjam="{{ \Carbon\Carbon::parse($pinjam->tanggal_pinjam)->format('Y-m-d') }}" data-jml_pinjam="{{ $pinjam->jml_pinjam }}" data-jml_cicilan="{{ $pinjam->jml_cicilan }}" data-jatuh_tempo="{{ \Carbon\Carbon::parse($pinjam->jatuh_tempo)->format('Y-m-d') }}">
+                            <button type="button" class="btn btn-outline-warning btn-sm m-1" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editPinjaman" 
+                                data-id="{{ $pinjam->pinjaman_id }}" 
+                                data-tanggal_pinjam="{{ \Carbon\Carbon::parse($pinjam->tanggal_pinjam)->format('Y-m-d') }}" 
+                                data-jml_pinjam="{{ $pinjam->jml_pinjam }}" 
+                                data-jml_cicilan="{{ $pinjam->jml_cicilan }}" 
+                                data-jatuh_tempo="{{ \Carbon\Carbon::parse($pinjam->jatuh_tempo)->format('Y-m-d') }}">
                                 <i class="fas fa-edit"></i>
                             </button>
                             @endcan
+                            
                             @can('pinjaman-detail')
-                            <a href="{{ route('pinjaman.show', $pinjam->pinjaman_id) }}" class="btn btn-outline-info" title="Show">
+                            <a href="{{ route('pinjaman.show', $pinjam->pinjaman_id) }}" class="btn btn-outline-info btn-sm m-1" title="Show">
                                 <i class="fas fa-eye"></i>
                             </a>
                             @endcan
+                            
                             @can('laporan_angsuran')
-                            <a href="{{ route('laporan.angsuran', $pinjam->pinjaman_id) }}" class="btn btn-outline-primary" title="cetak">
+                            <a href="{{ route('laporan.angsuran', $pinjam->pinjaman_id) }}" class="btn btn-outline-primary btn-sm m-1" title="cetak">
                                 <i class="bi bi-printer-fill"></i>
                             </a>
                             @endcan
+                            
                             @can('pinjaman-delete')
                             <form action="{{ route('pinjaman.destroy', $pinjam->pinjaman_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                <button type="submit" class="btn btn-outline-danger btn-sm m-1" title="Delete">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
@@ -125,104 +140,77 @@
                     @endforeach
                 </tbody>
             </table>
+            
             @if($pinjaman->isEmpty())
-            <p class="text-center">Tidak Ada Transaksi Pinjaman</p>
+            <p class="text-center mt-4">Tidak Ada Transaksi Pinjaman</p>
             @endif
 
-            <div class="float-right">
-
-                {{ $pinjaman->links() }}
+            <div class="d-flex justify-content-end mt-3">
+                {{ $pinjaman->appends(request()->all())->links() }}
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Menutup alert secara otomatis setelah 5 detik
-    setTimeout(function() {
-        document.querySelectorAll('.alert').forEach(function(alert) {
-            new bootstrap.Alert(alert).close();
-        });
-    }, 5000);
-
-    // Membuat animasi alert muncul di depan tabel
-    $(document).ready(function() {
-        $(".custom-alert").each(function(index) {
-            $(this).delay(300 * index).fadeIn("slow");
-        });
-    });
-
-    // Menghitung dan menampilkan jatuh tempo otomatis
-    document.getElementById('jml_cicilan').addEventListener('input', function() {
-        const tanggalPinjam = document.getElementById('tanggal_pinjam').value;
-        const jmlCicilan = parseInt(this.value);
-
-        if (tanggalPinjam && jmlCicilan) {
-            // Mengubah tanggal pinjam menjadi objek Date
-            const tanggalPinjamDate = new Date(tanggalPinjam);
-
-            // Menambahkan jumlah bulan cicilan ke tanggal pinjam
-            tanggalPinjamDate.setMonth(tanggalPinjamDate.getMonth() + jmlCicilan);
-
-            // Mengubah kembali objek Date menjadi string dengan format yyyy-mm-dd
-            const year = tanggalPinjamDate.getFullYear();
-            const month = String(tanggalPinjamDate.getMonth() + 1).padStart(2, '0'); // Menambahkan 1 karena bulan di Date dimulai dari 0
-            const day = String(tanggalPinjamDate.getDate()).padStart(2, '0');
-            const jatuhTempo = `${year}-${month}-${day}`;
-
-            // Menampilkan jatuh tempo di input jatuh_tempo
-            document.getElementById('jatuh_tempo').value = jatuhTempo;
-        }
-    });
-
-    // Memperbarui jatuh tempo saat tanggal pinjam diubah
-    document.getElementById('tanggal_pinjam').addEventListener('change', function() {
-        const jmlCicilan = parseInt(document.getElementById('jml_cicilan').value);
-        const tanggalPinjam = this.value;
-
-        if (tanggalPinjam && jmlCicilan) {
-            // Mengubah tanggal pinjam menjadi objek Date
-            const tanggalPinjamDate = new Date(tanggalPinjam);
-
-            // Menambahkan jumlah bulan cicilan ke tanggal pinjam
-            tanggalPinjamDate.setMonth(tanggalPinjamDate.getMonth() + jmlCicilan);
-
-            // Mengubah kembali objek Date menjadi string dengan format yyyy-mm-dd
-            const year = tanggalPinjamDate.getFullYear();
-            const month = String(tanggalPinjamDate.getMonth() + 1).padStart(2, '0'); // Menambahkan 1 karena bulan di Date dimulai dari 0
-            const day = String(tanggalPinjamDate.getDate()).padStart(2, '0');
-            const jatuhTempo = `${year}-${month}-${day}`;
-
-            // Menampilkan jatuh tempo di input jatuh_tempo
-            document.getElementById('jatuh_tempo').value = jatuhTempo;
-        }
-    });
-</script>
-<script>
     document.addEventListener('DOMContentLoaded', function() {
-        const tanggalPinjamInput = document.getElementById('tanggal_pinjam');
-        const jmlCicilanInput = document.getElementById('jml_cicilan');
-        const jatuhTempoInput = document.getElementById('jatuh_tempo');
+        
+        // 1. Auto Close Alerts
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                // Pastikan bootstrap sudah terload
+                if(typeof bootstrap !== 'undefined'){
+                    new bootstrap.Alert(alert).close();
+                }
+            });
+        }, 5000);
 
-        function updateJatuhTempo() {
-            const tanggalPinjam = tanggalPinjamInput.value;
-            const jmlCicilan = parseInt(jmlCicilanInput.value);
+        // 2. Animasi Alert
+        const alerts = document.querySelectorAll(".custom-alert");
+        alerts.forEach((alert, index) => {
+             // Menggunakan CSS transition atau library jQuery jika perlu, 
+             // tapi vanilla JS sederhana cukup dengan opacity jika CSS mendukung
+             alert.style.opacity = 1; 
+        });
 
-            if (tanggalPinjam && jmlCicilan) {
-                const tanggalPinjamDate = new Date(tanggalPinjam);
-                tanggalPinjamDate.setMonth(tanggalPinjamDate.getMonth() + jmlCicilan);
+        // 3. Hitung Jatuh Tempo
+        // PENTING: ID 'tanggal_pinjam', 'jml_cicilan', dan 'jatuh_tempo'
+        // harus unik. Jika modal create dan edit pakai ID yang sama,
+        // kode di bawah ini hanya akan jalan di salah satu modal.
+        // Solusi terbaik: Gunakan class atau ID berbeda untuk modal create vs edit.
+        
+        const inputs = [
+            { tgl: 'tanggal_pinjam', cicil: 'jml_cicilan', tempo: 'jatuh_tempo' }
+            // Jika Anda punya ID berbeda untuk edit, tambahkan disini, misal:
+            // { tgl: 'edit_tanggal_pinjam', cicil: 'edit_jml_cicilan', tempo: 'edit_jatuh_tempo' }
+        ];
 
-                const year = tanggalPinjamDate.getFullYear();
-                const month = String(tanggalPinjamDate.getMonth() + 1).padStart(2, '0');
-                const day = String(tanggalPinjamDate.getDate()).padStart(2, '0');
-                const jatuhTempo = `${year}-${month}-${day}`;
+        inputs.forEach(ids => {
+            const tglInput = document.getElementById(ids.tgl);
+            const cicilInput = document.getElementById(ids.cicil);
+            const tempoInput = document.getElementById(ids.tempo);
 
-                jatuhTempoInput.value = jatuhTempo;
+            if (tglInput && cicilInput && tempoInput) {
+                function updateJatuhTempo() {
+                    const tglVal = tglInput.value;
+                    const cicilVal = parseInt(cicilInput.value);
+
+                    if (tglVal && cicilVal) {
+                        const d = new Date(tglVal);
+                        d.setMonth(d.getMonth() + cicilVal);
+
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        
+                        tempoInput.value = `${year}-${month}-${day}`;
+                    }
+                }
+
+                tglInput.addEventListener('change', updateJatuhTempo);
+                cicilInput.addEventListener('input', updateJatuhTempo);
             }
-        }
-
-        jmlCicilanInput.addEventListener('input', updateJatuhTempo);
-        tanggalPinjamInput.addEventListener('change', updateJatuhTempo);
+        });
     });
 </script>
 @endsection
