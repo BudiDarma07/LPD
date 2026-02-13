@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
@@ -16,13 +17,23 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'image', // ✅ Tambahkan ini
-];
-
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        
+        // --- KOLOM DATA ANGGOTA (WAJIB DITAMBAHKAN DISINI) ---
+        'nip',
+        'telphone',
+        'jenis_kelamin',
+        'agama',
+        'alamat',
+        'pekerjaan',
+        'status_anggota',
+        'tgl_gabung',
+        'image', 
+        // -----------------------------------------------------
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -46,5 +57,4 @@ protected $fillable = [
             'password' => 'hashed',
         ];
     }
-   
 }

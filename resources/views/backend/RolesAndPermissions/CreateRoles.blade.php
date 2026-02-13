@@ -1,118 +1,115 @@
 @extends('backend.app')
-@section('title', 'Tambah Role')
+@section('title', 'Buat Role Baru')
+
 @section('head')
 <style>
-    .table {
-        width: 50%;
-        border-collapse: collapse;
+    /* Styling Checkbox Kustom */
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
     }
-
-    .table th,
-    .table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
+    
+    .permission-group {
+        border: 1px solid #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        height: 100%;
+        background: #f8f9fa;
     }
-
-    .table th {
-        background-color: #f2f2f2;
-    }
-
-    .table tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    /* Style for checkboxes */
-    .styled-checkbox {
-        position: relative;
+    
+    .permission-label {
+        font-weight: 500;
         cursor: pointer;
-        display: inline-block;
+        color: #495057;
     }
 
-    .styled-checkbox input {
-        position: absolute;
-        opacity: 0;
-        cursor: pointer;
-        height: 0;
-        width: 0;
-    }
-
-    .checkmark {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 20px;
-        width: 20px;
-        background-color: #eee;
-        border: 1px solid #ccc;
-    }
-
-    .styled-checkbox input:checked+.checkmark:after {
-        content: "";
-        position: absolute;
+    /* Highlight khusus permission Nasabah */
+    .highlight-nasabah {
+        background-color: #d1e7dd;
+        border: 1px solid #badbcc;
+        padding: 5px 10px;
+        border-radius: 5px;
         display: block;
-        left: 6px;
-        top: 2px;
-        width: 6px;
-        height: 12px;
-        border: solid #333;
-        border-width: 0 2px 2px 0;
-        transform: rotate(45deg);
+        margin-bottom: 5px;
     }
 </style>
 @endsection
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h1>{{ __('Create New Role') }}</h1>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="{{ URL('add-role') }}">
-            @csrf
-            <label for="name">{{ __('Role Name') }}</label>
-            <input type="text" required name="name" class="form-control" />
-
-
-            <div class="row">
-                <div class="col-md-6">
-                    <h1>{{ __('Permissions') }}</h1>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>{{ __('Name') }}</th>
-                                <th>{{ __('Permission') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($permissions as $permission)
-                            <tr>
-                                <td>{{ $permission->name }}</td>
-                                <td class="styled-checkbox">
-                                    <input type="checkbox" value="{{ $permission->name }}" name="permission[]" id="permission_{{ $permission->id }}" />
-                                    <label class="checkmark" for="permission_{{ $permission->id }}"></label>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+<div class="container-fluid pt-4 px-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4 shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0 text-primary"><i class="fa fa-user-shield me-2"></i>Buat Role Baru</h4>
+                    <a href="{{ url('show-roles') }}" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i> Kembali</a>
                 </div>
 
+                <form method="POST" action="{{ URL('add-role') }}">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-bold">Nama Role <span class="text-danger">*</span></label>
+                        <input type="text" required name="name" class="form-control form-control-lg border-primary" placeholder="Contoh: Nasabah, Admin, Petugas" autofocus />
+                        <div class="form-text">Gunakan nama <strong>Nasabah</strong> (Huruf besar diawal) agar fitur otomatis berjalan.</div>
+                    </div>
 
-                <div class="col-md-6">
-                    <h1>{{ __('Users') }}</h1>
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom-0 py-3">
+                                    <h5 class="mb-0"><i class="fa fa-key me-2 text-warning"></i>Pilih Hak Akses (Permissions)</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        @foreach ($permissions as $permission)
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check {{ str_contains($permission->name, 'nasabah') ? 'highlight-nasabah' : '' }}">
+                                                <input class="form-check-input" type="checkbox" 
+                                                    value="{{ $permission->name }}" 
+                                                    name="permission[]" 
+                                                    id="perm_{{ $permission->id }}">
+                                                <label class="form-check-label permission-label" for="perm_{{ $permission->id }}">
+                                                    {{ $permission->name }}
+                                                    @if(str_contains($permission->name, 'nasabah'))
+                                                        <i class="fa fa-star text-warning ms-1" title="Penting untuk Nasabah"></i>
+                                                    @endif
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <label for="users">{{ __('Users') }}</label>
-                    <select class="form-control" name="users[]" id="users" multiple>
-                        @foreach ($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white border-bottom-0 py-3">
+                                    <h5 class="mb-0"><i class="fa fa-users me-2 text-info"></i>Assign ke User</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info small">
+                                        <i class="fa fa-info-circle me-1"></i> Pilih user yang langsung ingin diberikan role ini (Tekan Ctrl untuk pilih banyak).
+                                    </div>
+                                    <select class="form-select" name="users[]" id="users" multiple style="height: 250px;">
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fa fa-save me-2"></i> SIMPAN ROLE
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <input type="submit" class="btn btn-success" value="{{ __('Save') }}" />
-        </form>
+        </div>
     </div>
 </div>
 @endsection

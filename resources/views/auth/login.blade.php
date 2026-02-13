@@ -3,31 +3,41 @@
 
 <head>
     <meta charset="utf-8">
-    <title>LPD Desa Adat Joanyar Kelodan | Login</title>
+    <title>Login | LPD Desa Adat Joanyar Kelodan</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    
     <link href="{{ asset('img/favicon.ico') }}" rel="icon">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-    <link href="{{ url('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #009CFF;
-            --secondary-color: #757575;
-            --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --primary-color: #0d6efd;
+            --primary-dark: #0a58ca;
+            --bg-gradient: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
         }
 
         body {
-            background: var(--bg-gradient);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: url('https://source.unsplash.com/1600x900/?bali,architecture,building') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.8), rgba(0, 0, 0, 0.6));
+            z-index: -1;
         }
 
         .login-container {
@@ -39,195 +49,207 @@
         }
 
         .card-login {
-            animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
             border: none;
-            border-radius: 15px;
-            background: #ffffff;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .card-header-custom {
-            background: #f8f9fa;
-            padding: 30px 20px;
+            padding: 40px 30px 20px;
             text-align: center;
-            border-bottom: 1px solid #eee;
+            border-bottom: none;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 6px rgba(13, 110, 253, 0.3));
         }
 
         .card-body-custom {
-            padding: 40px;
+            padding: 20px 40px 50px;
         }
 
-        .form-label {
-            font-weight: 600;
-            color: #444;
-            font-size: 0.9rem;
+        .form-floating > .form-control {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding-left: 20px;
+        }
+        
+        .form-floating > .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
         }
 
-        .input-group {
-            border-radius: 10px;
-            overflow: hidden;
-            transition: all 0.3s ease;
+        .form-floating > label {
+            padding-left: 20px;
         }
 
-        .input-group-text {
-            background-color: #f1f3f5;
-            border: 1px solid #ced4da;
-            border-right: none;
-            color: var(--primary-color);
+        .password-wrapper {
+            position: relative;
         }
-
-        .form-control {
-            border: 1px solid #ced4da;
-            border-left: none;
-            padding: 12px;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #ced4da;
-            background-color: #fff;
-        }
-
+        
         .toggle-password {
-            background-color: #fff !important;
-            border-left: none !important;
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
             cursor: pointer;
-            color: var(--secondary-color) !important;
+            color: #6c757d;
+            z-index: 10;
         }
 
         .btn-login {
-            background: var(--primary-color);
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
             border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
             transition: all 0.3s ease;
         }
 
         .btn-login:hover {
-            background: #0086db;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 156, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4);
         }
 
         #spinner {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity .5s ease-out, visibility 0s linear .5s;
+            background: #fff;
             z-index: 99999;
         }
-
-        #spinner.show {
-            transition: opacity .5s ease-out, visibility 0s linear 0s;
-            visibility: visible;
-            opacity: 1;
+        #spinner.hide {
+            opacity: 0;
+            visibility: hidden;
         }
     </style>
 </head>
 
 <body>
-    <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    <div id="spinner" class="position-fixed w-100 h-100 d-flex align-items-center justify-content-center top-0 start-0 show">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="sr-only">Loading...</span>
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
+
     <div class="login-container">
         <div class="card-login">
             <div class="card-header-custom">
-                <h3 class="text-primary fw-bold mb-1">LPD DESA ADAT</h3>
-                <h5 class="text-dark">Joanyar Kelodan</h5>
-                <p class="text-muted small mb-0">Sistem Informasi Keuangan LPD</p>
+                <div class="logo-icon">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">LPD Desa Adat</h3>
+                <p class="text-primary fw-semibold mb-0" style="letter-spacing: 1px;">JOANYAR KELODAN</p>
+                <small class="text-muted d-block mt-2">Silakan masuk untuk melanjutkan</small>
             </div>
 
             <div class="card-body-custom">
+                @if (session('status'))
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                        {{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        <i class="fa fa-exclamation-circle me-2"></i>Login Gagal. Cek email & password.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     
-                    <div class="mb-4">
-                        <label for="email" class="form-label">Alamat Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fa fa-envelope"></i></span>
-                            <input id="email" type="email"
-                                class="form-control @error('email') is-invalid @enderror"
-                                name="email" value="{{ old('email') }}" required
-                                autocomplete="email" autofocus placeholder="Masukkan email">
-                            @error('email')
-                                <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
-                            @enderror
-                        </div>
+                    <div class="form-floating mb-4">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                            id="email" name="email" value="{{ old('email') }}" 
+                            placeholder="name@example.com" required autocomplete="email" autofocus>
+                        <label for="email">Alamat Email</label>
+                        @error('email')
+                            <div class="invalid-feedback ps-2">{{ $message }}</div>
+                        @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label for="password" class="form-label">Kata Sandi</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
-                            <input id="password" type="password"
-                                class="form-control @error('password') is-invalid @enderror"
-                                name="password" required autocomplete="current-password"
-                                placeholder="Masukkan password" style="border-right: none;">
-                            <span class="input-group-text toggle-password" id="btn-toggle">
-                                <i class="fa fa-eye" id="eye-icon"></i>
-                            </span>
-                            @error('password')
-                                <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
-                            @enderror
+                    <div class="mb-4 password-wrapper">
+                        <div class="form-floating">
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                id="password" name="password" placeholder="Password" required>
+                            <label for="password">Kata Sandi</label>
+                            <i class="fa fa-eye toggle-password" id="btn-toggle"></i>
                         </div>
+                        @error('password')
+                            <div class="invalid-feedback d-block ps-2">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <label class="form-check-label small text-muted" for="remember">Ingat Saya</label>
+                            <label class="form-check-label text-secondary small" for="remember">
+                                Ingat Saya
+                            </label>
                         </div>
+                        @if (Route::has('password.request'))
+                            <a class="text-primary small text-decoration-none fw-bold" href="{{ route('password.request') }}">
+                                Lupa Password?
+                            </a>
+                        @endif
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-login w-100 text-white">
-                        <i class="fa fa-sign-in-alt me-2"></i> Masuk Ke Sistem
+                        MASUK SEKARANG <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
                     </button>
+
+                    <div class="text-center mt-4">
+                        <span class="text-muted small">Belum memiliki akun?</span>
+                        <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none ms-1">
+                            Daftar Disini
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url('assets/js/main.js') }}"></script>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Logika Toggle Password
+            // Toggle Password
             $("#btn-toggle").click(function() {
                 const passwordInput = $("#password");
-                const eyeIcon = $("#eye-icon");
+                const icon = $(this);
                 
                 if (passwordInput.attr("type") === "password") {
                     passwordInput.attr("type", "text");
-                    eyeIcon.removeClass("fa-eye").addClass("fa-eye-slash");
+                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
                 } else {
                     passwordInput.attr("type", "password");
-                    eyeIcon.removeClass("fa-eye-slash").addClass("fa-eye");
+                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
                 }
             });
 
-            // Menghilangkan spinner
+            // Hide Spinner
             setTimeout(function () {
                 if ($('#spinner').length > 0) {
-                    $('#spinner').removeClass('show');
+                    $('#spinner').addClass('hide');
                 }
-            }, 500);
+            }, 600);
         });
     </script>
 </body>
-
 </html>
