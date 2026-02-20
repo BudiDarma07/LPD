@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB; // Tambahkan Facade DB
 use Illuminate\Support\Str; 
 use App\Models\Simpanan;
 use App\Models\Pinjaman;
-use App\Models\Angsuran; // Pastikan model ini ada
+use App\Models\Angsuran; 
 use Carbon\Carbon; 
 
 class NasabahPanelController extends Controller
@@ -39,17 +39,18 @@ class NasabahPanelController extends Controller
                             ->take(5)
                             ->get();
 
-        // 3. Cek Pinjaman Aktif (Hanya yang statusnya Diterima)
+        // 3. Cek Pinjaman Aktif (Hanya yang statusnya 1 / Belum Lunas)
         $pinjamanAktif = Pinjaman::where('id_anggota', $anggota->id)
-                            ->where('status_pengajuan', 'Diterima') 
+                            ->where('status_pengajuan', '1') 
                             ->first();
         
         $sisaTagihan = 0;
         if ($pinjamanAktif) {
             // Hitung total yang sudah dibayar di tabel angsuran
+            // Pastikan nama kolomnya jml_angsuran (bukan jumlah_angsuran)
             $totalDibayar = DB::table('angsuran')
                             ->where('id_pinjaman', $pinjamanAktif->id)
-                            ->sum('jumlah_angsuran'); // Sesuaikan nama kolom di tabel angsuran
+                            ->sum('jml_angsuran'); 
             
             // Perhitungan Sederhana: Pokok - Sudah Bayar (Bisa disesuaikan jika ada bunga)
             $sisaTagihan = $pinjamanAktif->jml_pinjam - $totalDibayar;
@@ -58,9 +59,9 @@ class NasabahPanelController extends Controller
             if($sisaTagihan < 0) $sisaTagihan = 0;
         }
 
-        // 4. Cek Pengajuan Menunggu
+        // 4. Cek Pengajuan Menunggu (Status 0)
         $pengajuanMenunggu = Pinjaman::where('id_anggota', $anggota->id)
-                                ->where('status_pengajuan', 'Menunggu')
+                                ->where('status_pengajuan', '0')
                                 ->exists();
 
         return view('backend.nasabah.dashboard', compact(
@@ -85,9 +86,9 @@ class NasabahPanelController extends Controller
             return redirect()->route('nasabah.dashboard')->with('error', 'Data anggota tidak valid.');
         }
         
-        // Cek apakah ada pinjaman yang belum lunas (Diterima) atau sedang diajukan (Menunggu)
+        // Cek apakah ada pinjaman yang belum lunas (1) atau sedang diajukan (0)
         $cekPinjaman = Pinjaman::where('id_anggota', $anggota->id)
-                        ->whereIn('status_pengajuan', ['Menunggu', 'Diterima'])
+                        ->whereIn('status_pengajuan', ['0', '1'])
                         ->exists();
 
         if($cekPinjaman) {
@@ -95,7 +96,17 @@ class NasabahPanelController extends Controller
                 ->with('error', 'Anda masih memiliki pinjaman aktif atau pengajuan yang sedang diproses.');
         }
 
-        return view('backend.nasabah.create_pinjaman');
+        // HITUNG TOTAL SIMPANAN NASABAH
+        $totalSimpanan = Simpanan::where('id_anggota', $anggota->id)->sum('jml_simpanan');
+
+        // Jika simpanan kurang dari minimal pinjaman (200.000), blokir pengajuan
+        if ($totalSimpanan < 200000) {
+            return redirect()->route('nasabah.dashboard')
+                ->with('error', 'Total simpanan Anda (Rp ' . number_format($totalSimpanan, 0, ',', '.') . ') kurang dari syarat minimal pengajuan pinjaman (Rp 200.000).');
+        }
+
+        // Lempar totalSimpanan ke view
+        return view('backend.nasabah.create_pinjaman', compact('totalSimpanan'));
     }
 
     /**
@@ -106,11 +117,14 @@ class NasabahPanelController extends Controller
         $userId = Auth::id();
         $anggota = DB::table('_anggota')->where('user_id', $userId)->first();
 
-        // Validasi Input
+        // Validasi Input (Hanya membatasi minimal, tidak ada batas maksimal)
         $request->validate([
-            'jumlah_pinjaman' => 'required|numeric|min:500000',
+            'jumlah_pinjaman' => 'required|numeric|min:200000',
             'lama_angsuran'   => 'required|numeric', 
             'keterangan'      => 'required|string|max:255',
+        ], [
+            // Kustomisasi pesan error jika kurang dari minimal
+            'jumlah_pinjaman.min' => 'Minimal pengajuan pinjaman adalah Rp 200.000.'
         ]);
 
         try {
@@ -131,8 +145,8 @@ class NasabahPanelController extends Controller
                 'lama_angsuran'         => $request->lama_angsuran,
                 'keterangan'            => $request->keterangan, 
                 
-                // Status Default
-                'status_pengajuan'      => 'Menunggu',
+                // Status Default (0 = Menunggu)
+                'status_pengajuan'      => '0',
                 'bunga_pinjam'          => 0, // Akan diisi admin saat ACC
                 'jml_cicilan'           => 0, // Akan diisi admin saat ACC
                 'keterangan_ditolak_pengajuan' => '-', 

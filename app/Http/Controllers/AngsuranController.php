@@ -24,7 +24,7 @@ class AngsuranController extends Controller
                 'pinjaman.kodeTransaksiPinjaman as kode_pinjaman',
                 '_anggota.name as nasabah',
                 'pinjaman.jml_pinjam as pinjaman_pokok',
-                'pinjaman.sisa_pinjam as sisa_pinjam',
+                'angsuran.sisa_pinjam as sisa_pinjam', // <-- PERBAIKAN: Menggunakan sisa_pinjam dari angsuran
                 'angsuran.bunga_pinjaman as bunga',
                 'angsuran.cicilan as angsuran_ke',
                 'angsuran.status as status',
@@ -155,9 +155,6 @@ class AngsuranController extends Controller
             ->with('success', 'Angsuran berhasil dilakukan. Total angsuran yang harus dibayar: Rp ' . number_format($total_angsuran, 0, ',', '.') . '. Denda: Rp ' . number_format($denda, 0, ',', '.'));
     }
 
-
-
-
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -166,119 +163,101 @@ class AngsuranController extends Controller
             'bukti_pembayaran' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Temukan Angsuran berdasarkan ID
         $angsuran = DB::table('angsuran')->where('id', $id)->first();
-
         if (!$angsuran) {
             return redirect()->back()->with('error', 'Angsuran tidak ditemukan.');
         }
 
-        // Temukan Pinjaman yang terkait
         $pinjaman = DB::table('pinjaman')->where('id', $angsuran->id_pinjaman)->first();
-
         if (!$pinjaman) {
             return redirect()->back()->with('error', 'Pinjaman tidak ditemukan.');
         }
 
+        // Hitung sisa pinjaman saat ini secara manual
+        $total_dibayar = DB::table('angsuran')->where('id_pinjaman', $pinjaman->id)->sum('jml_angsuran');
+        $sisa_pinjaman_saat_ini = $pinjaman->jml_pinjam - $total_dibayar;
+
         $jumlahAngsuranBaru = $request->input('jml_angsuran');
         $jumlahAngsuranLama = $angsuran->jml_angsuran;
 
-        // Validasi bahwa jumlah angsuran baru tidak melebihi sisa saldo pinjaman yang tersisa ditambah jumlah angsuran lama
-        if ($jumlahAngsuranBaru > $pinjaman->sisa_pinjam + $jumlahAngsuranLama) {
+        if ($jumlahAngsuranBaru > $sisa_pinjaman_saat_ini + $jumlahAngsuranLama) {
             return redirect()->back()->with('error', 'Jumlah angsuran tidak boleh melebihi sisa pinjaman.');
         }
 
-        // Hitung selisih antara angsuran baru dan lama
         $selisihAngsuran = $jumlahAngsuranBaru - $jumlahAngsuranLama;
 
         // Persiapkan data untuk pembaruan
         $data = [
             'jml_angsuran' => $jumlahAngsuranBaru,
             'bunga_pinjaman' => $request->input('bunga_pinjaman'),
-            'sisa_pinjam' => $angsuran->sisa_angsuran - $selisihAngsuran,
+            'sisa_pinjam' => $angsuran->sisa_pinjam - $selisihAngsuran,
             'updated_by' => auth()->user()->id,
             'updated_at' => now(),
         ];
 
-        // Periksa jika ada file bukti pembayaran baru yang diunggah
         if ($request->hasFile('bukti_pembayaran')) {
-            // Hapus file lama jika ada
             if ($angsuran->bukti_pembayaran && file_exists(public_path($angsuran->bukti_pembayaran))) {
                 unlink(public_path($angsuran->bukti_pembayaran));
             }
-
-            // Simpan file baru
             $file = $request->file('bukti_pembayaran');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('assets/img/'), $filename);
             $data['bukti_pembayaran'] = 'assets/img/' . $filename;
         }
 
-        // Perbarui Angsuran
         DB::table('angsuran')->where('id', $id)->update($data);
 
-        // Perbarui saldo pinjaman yang tersisa di tabel pinjaman
-        $sisaSaldo = $pinjaman->sisa_pinjam - $selisihAngsuran;
+        // Update status pinjaman tanpa mengupdate kolom sisa_pinjam yang tidak ada di DB
+        $sisaSaldo = $sisa_pinjaman_saat_ini - $selisihAngsuran;
 
-        // Cek dan perbarui status angsuran dan pinjaman
         if ($data['sisa_pinjam'] > 0) {
             $data['status'] = 0; // Belum lunas
             DB::table('pinjaman')->where('id', $pinjaman->id)->update([
-                'sisa_pinjam' => $sisaSaldo,
-                'status_pengajuan' => 1, // Belum lunas
+                'status_pengajuan' => 1, 
                 'updated_at' => now(),
             ]);
         } else {
             $data['status'] = 1; // Lunas
             DB::table('pinjaman')->where('id', $pinjaman->id)->update([
-                'sisa_pinjam' => $sisaSaldo,
-                'status_pengajuan' => 3, // Selesai
+                'status_pengajuan' => 3, 
                 'updated_at' => now(),
             ]);
         }
 
-        // Perbarui Angsuran
         DB::table('angsuran')->where('id', $id)->update($data);
 
-        // Redirect ke halaman detail pinjaman
         return redirect()->route('pinjaman.show', ['id' => $pinjaman->id])
             ->with('success', 'Angsuran berhasil diperbarui.');
     }
 
-
-
     public function destroy($id)
     {
-        // Temukan Angsuran berdasarkan ID
         $angsuran = DB::table('angsuran')->where('id', $id)->first();
-
         if (!$angsuran) {
             return redirect()->back()->with('error', 'Angsuran tidak ditemukan.');
         }
 
-        // Temukan Pinjaman yang terkait
         $pinjaman = DB::table('pinjaman')->where('id', $angsuran->id_pinjaman)->first();
-
         if (!$pinjaman) {
             return redirect()->back()->with('error', 'Pinjaman tidak ditemukan.');
         }
 
-        // Hapus file bukti pembayaran jika ada
         if ($angsuran->bukti_pembayaran && file_exists(public_path($angsuran->bukti_pembayaran))) {
             unlink(public_path($angsuran->bukti_pembayaran));
         }
 
-        // Hitung sisa pinjaman yang baru
-        $sisaPinjamBaru = $pinjaman->sisa_pinjam + $angsuran->jml_angsuran;
+        // Kalkulasi sisa pinjaman manual tanpa menggunakan $pinjaman->sisa_pinjam
+        $total_dibayar = DB::table('angsuran')->where('id_pinjaman', $pinjaman->id)->sum('jml_angsuran');
+        $sisaPinjamanSaatIni = $pinjaman->jml_pinjam - $total_dibayar;
+        
+        $sisaPinjamBaru = $sisaPinjamanSaatIni + $angsuran->jml_angsuran;
 
-        // Update pinjaman
+        // Update status pengajuan pinjaman
         DB::table('pinjaman')->where('id', $pinjaman->id)->update([
-            'sisa_pinjam' => $sisaPinjamBaru,
             'status_pengajuan' => ($sisaPinjamBaru > 0) ? 1 : 3,
             'updated_at' => now(),
         ]);
 
-        // Hapus angsuran dari database
         DB::table('angsuran')->where('id', $id)->delete();
 
         return redirect()->route('pinjaman.show', ['id' => $pinjaman->id])

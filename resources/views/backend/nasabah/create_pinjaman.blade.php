@@ -23,9 +23,11 @@
                             <span class="input-group-text">Rp</span>
                             <input type="number" class="form-control @error('jumlah_pinjaman') is-invalid @enderror" 
                                 id="jumlah_pinjaman" name="jumlah_pinjaman" 
-                                placeholder="Contoh: 1000000" min="500000" required>
+                                placeholder="Contoh: 200000" min="200000" max="{{ $totalSimpanan }}" required>
                         </div>
-                        <div class="form-text text-muted">Minimal pengajuan Rp 500.000. Masukkan angka tanpa titik/koma.</div>
+                        <div class="form-text text-muted">
+                            Minimal pengajuan Rp 200.000. Maksimal pengajuan Rp {{ number_format($totalSimpanan, 0, ',', '.') }}.
+                        </div>
                         @error('jumlah_pinjaman')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -62,7 +64,7 @@
                         </button>
                     </div>
                 </form>
-                </div>
+            </div>
         </div>
     </div>
 </div>
