@@ -67,6 +67,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/tolak_pengajuan/{id}', [\App\Http\Controllers\PinjamanController::class, 'tolakPengajuan'])->name('tolak_pengajuan');
     Route::get('angsuran/{id}', [\App\Http\Controllers\PinjamanController::class, 'showAngsuran'])->name('angsuran.show');
     
+    // ROUTE BARU: Cetak PDF Detail Pinjaman
+    Route::get('/pinjaman/{id}/pdf', [\App\Http\Controllers\PinjamanController::class, 'cetakPdf'])->name('pinjaman.pdf');
+    
     // --- LAPORAN ---
     Route::get('/simpanan/cetak', [\App\Http\Controllers\SimpananController::class, 'cetak'])->name('simpanan.cetak');
     Route::get('/pinjaman/cetak', [\App\Http\Controllers\LaporanController::class, 'laporanPinjaman'])->name('pinjaman.cetak');

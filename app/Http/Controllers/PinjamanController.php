@@ -327,4 +327,71 @@ class PinjamanController extends Controller
 
         return redirect()->route('pinjaman')->with('success', 'Pinjaman berhasil dihapus.');
     }
+
+    public function cetakPdf($id)
+    {
+        // Ambil data pinjaman
+        $pinjaman = DB::table('pinjaman')
+            ->select(
+                'pinjaman.id as pinjaman_id',
+                'pinjaman.kodeTransaksiPinjaman',
+                'pinjaman.tanggal_pinjam',
+                'pinjaman.jatuh_tempo',
+                'pinjaman.jml_pinjam',
+                'pinjaman.jml_cicilan',
+                'pinjaman.bunga_pinjam',
+                'pinjaman.status_pengajuan',
+                'users.name as created_by_name',
+                '_anggota.name as anggota_name'
+            )
+            ->join('users', 'users.id', '=', 'pinjaman.created_by')
+            ->join('_anggota', '_anggota.id', '=', 'pinjaman.id_anggota')
+            ->where('pinjaman.id', $id)
+            ->first();
+
+        if (!$pinjaman) {
+            abort(404, 'Data pinjaman tidak ditemukan.');
+        }
+
+        // Hitung total pinjaman dengan bunga
+        $bunga_persen = $pinjaman->bunga_pinjam;
+        $bunga_total = ($pinjaman->jml_pinjam * $bunga_persen) / 100;
+        $pinjaman->total_pinjaman_dengan_bunga = $pinjaman->jml_pinjam + $bunga_total;
+
+        // Ambil data angsuran (menggunakan get() agar semua data tampil di PDF, bukan paginate)
+        $angsuran = DB::table('angsuran')
+            ->select(
+                'angsuran.id as angsuran_id',
+                'angsuran.kodeTransaksiAngsuran',
+                'angsuran.tanggal_angsuran',
+                'angsuran.jml_angsuran',
+                'angsuran.sisa_pinjam as sisa_angsuran',
+                'angsuran.cicilan',
+                'angsuran.status',
+                'angsuran.denda',
+                'angsuran.keterangan',
+                'angsuran.bunga_pinjaman',
+                DB::raw('(angsuran.jml_angsuran + angsuran.bunga_pinjaman + COALESCE(angsuran.denda, 0)) as total_angsuran_dengan_bunga'),
+                'users.name as created_by_name'
+            )
+            ->join('users', 'users.id', '=', 'angsuran.created_by')
+            ->where('angsuran.id_pinjaman', $id)
+            ->orderBy('angsuran.tanggal_angsuran', 'asc')
+            ->get();
+
+        // Hitung total angsuran
+        $total_angsuran = DB::table('angsuran')
+            ->where('angsuran.id_pinjaman', $id)
+            ->sum(DB::raw('angsuran.jml_angsuran + angsuran.bunga_pinjaman + COALESCE(angsuran.denda, 0)'));
+
+        // Load view untuk template PDF-nya (pastikan Anda membuat file view ini)
+        $pdf = PDF::loadView('backend.pinjaman.pdf', [
+            'pinjaman' => $pinjaman,
+            'angsuran' => $angsuran,
+            'total_angsuran' => $total_angsuran,
+        ]);
+
+        // Stream (tampilkan di browser) atau gunakan download() untuk langsung unduh file
+        return $pdf->stream('Detail_Pinjaman_' . $pinjaman->kodeTransaksiPinjaman . '.pdf');
+    }
 }

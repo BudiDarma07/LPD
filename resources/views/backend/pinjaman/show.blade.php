@@ -1,11 +1,10 @@
-    @extends('backend.app')
+@extends('backend.app')
     @section('title', 'Detail Pinjaman')
     @section('content')
 
     <div class="container-fluid pt-4 px-4">
         <h2 class="mb-4">Data Pinjaman</h2>
 
-        <!-- Alert Success -->
         @if(Session::has('success'))
         <div id="successAlert" class="alert alert-success alert-dismissible fade show custom-alert" role="alert">
             <h5 class="alert-heading"><i class="icon fas fa-check-circle"></i> Sukses!</h5>
@@ -14,7 +13,6 @@
         </div>
         @endif
 
-        <!-- Alert Error -->
         @if(Session::has('error'))
         <div id="errorAlert" class="alert alert-danger alert-dismissible fade show custom-alert" role="alert">
             <h5 class="alert-heading"><i class="icon fas fa-times-circle"></i> Error!</h5>
@@ -23,270 +21,290 @@
         </div>
         @endif
 
-        <div class="bg-light rounded h-100 p-4">
-            <h4>Informasi Pinjaman</h4>
-            @can('approve_pinjaman')
-            <a href="{{ route('terima_pengajuan', $pinjaman->pinjaman_id)  }}" class="btn btn-outline-sm btn-success">Terima</a>
-            @endcan
-            @can('tolak_pinjaman')
-            <button type="button" class="btn btn-outline-sm btn-danger" data-bs-toggle="modal" data-bs-target="#tolakpengajuan">
-                Tolak Pengajuan
-            </button>
-            @endcan
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <th scope="row">Kode Pinjaman</th>
-                                <td>{{ $pinjaman->kodeTransaksiPinjaman }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Nama Nasabah</th>
-                                <td>{{ $pinjaman->anggota_name }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Tanggal Pinjam</th>
-                                <td>{{ tanggal_indonesia($pinjaman->tanggal_pinjam, false)}}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Tanggal Jatuh Tempo</th>
-                                <td>{{ tanggal_indonesia($pinjaman->jatuh_tempo, false)}}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Pinjaman Pokok</th>
-                                <td>Rp {{ number_format($pinjaman->jml_pinjam, 0, ',', '.') }}</td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-
-                </div>
-                <div class="col-md-6">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <th scope="row">Lama Pinjaman</th>
-                                <td>{{ $pinjaman->jml_cicilan }} Bulan</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Bunga Pinjaman</th>
-                                <td>{{ $pinjaman->bunga_pinjam }} %</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Jumlah Pinjaman Dengan Bunga</th>
-                                <td>Rp {{ number_format($pinjaman->total_pinjaman_dengan_bunga, 0, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Status Pengajuan</th>
-                                <td>
-                                    @if ($pinjaman->status_pengajuan == 0)
-                                    <span class="text-primary">Dibuat</span>
-                                    @elseif ($pinjaman->status_pengajuan == 1)
-                                    <span class="text-success">Disetujui</span>
-                                    @elseif ($pinjaman->status_pengajuan == 3)
-                                    <span class="text-info">Selesai</span>
-                                    @else
-                                    <span class="text-danger">Ditolak</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Dibuat Oleh</th>
-                                <td>{{ $pinjaman->created_by_name }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <br>
-
-                <!-- Modal Tolak Pengajuan -->
-                <div class="modal fade" id="tolakpengajuan" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="exampleModalLabel">Keterangan Tolak Pengajuan</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form method="POST" action="{{ route('tolak_pengajuan', ['id' => $pinjaman->pinjaman_id]) }}">
-                                @csrf
-                                <div class="modal-body">
-                                    <textarea name="catatan" id="catatan" class="form-control" rows="5" placeholder="Alasan Penolakan" required></textarea>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-outline-danger">Tolak</button>
-                                </div>
-                            </form>
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="bg-light rounded h-100 p-4">
+                    <h4 class="mb-4">Informasi Pinjaman</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Kode Pinjaman</th>
+                                        <td>{{ $pinjaman->kodeTransaksiPinjaman }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Nama Nasabah</th>
+                                        <td>{{ $pinjaman->anggota_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Tanggal Pinjam</th>
+                                        <td>{{ tanggal_indonesia($pinjaman->tanggal_pinjam, false)}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Tanggal Jatuh Tempo</th>
+                                        <td>{{ tanggal_indonesia($pinjaman->jatuh_tempo, false)}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Pinjaman Pokok</th>
+                                        <td>Rp {{ number_format($pinjaman->jml_pinjam, 0, ',', '.') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Lama Pinjaman</th>
+                                        <td>{{ $pinjaman->jml_cicilan }} Bulan</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Bunga Pinjaman</th>
+                                        <td>{{ $pinjaman->bunga_pinjam }} %</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Jumlah Pinjaman Dengan Bunga</th>
+                                        <td>Rp {{ number_format($pinjaman->total_pinjaman_dengan_bunga, 0, ',', '.') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Status Pengajuan</th>
+                                        <td>
+                                            @if ($pinjaman->status_pengajuan == 0)
+                                            <span class="text-primary fw-bold">Dibuat</span>
+                                            @elseif ($pinjaman->status_pengajuan == 1)
+                                            <span class="text-success fw-bold">Disetujui</span>
+                                            @elseif ($pinjaman->status_pengajuan == 3)
+                                            <span class="text-info fw-bold">Selesai</span>
+                                            @else
+                                            <span class="text-danger fw-bold">Ditolak</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Dibuat Oleh</th>
+                                        <td>{{ $pinjaman->created_by_name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Modal Bayar Angsuran -->
-                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="staticBackdropLabel">Angsuran</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <!-- Form untuk membayar angsuran -->
-                                <form action="{{ route('angsuran.bayar', $pinjaman->pinjaman_id) }}" method="POST" enctype="multipart/form-data">
-                                    @csrf
-                                    <div class="form-group">
-                                        <label for="tanggal_angsuran">Tanggal Angsuran:</label>
-                                        <input type="date" class="form-control" id="tanggal_angsuran" name="tanggal_angsuran" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="jml_angsuran">Jumlah Angsuran:</label>
-                                        <input type="number" class="form-control" id="jml_angsuran" name="jml_angsuran" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="bunga_angsuran">Bunga Angsuran:</label>
-                                        <input type="number" class="form-control" id="bunga_angsuran" name="bunga_angsuran" readonly>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="denda">Denda/Hari x 1%</label>
-                                        <input type="number" class="form-control" id="denda" name="denda" readonly>
-                                    </div>
-                                    <!-- Tambahkan elemen input tersembunyi untuk bunga pinjam -->
-                                    <input type="hidden" id="bunga_pinjam" value="{{ $pinjaman->bunga_pinjam }}">
-                                    <!-- Tambahkan elemen input tersembunyi untuk jatuh tempo -->
-                                    <input type="hidden" id="jatuh_tempo" value="{{ $pinjaman->jatuh_tempo }}">
-                                    <div class="mb-3">
-                                        <label for="bukti_pembayaran" class="form-label">Bukti Pembayaran</label>
-                                        <input class="form-control form-control-sm" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*" type="file" required>
-                                        @error('bukti_pembayaran')
-                                        <div class="text-danger">{{ $message }}</div>
-                                        @enderror
-                                        <img id="image-preview" src="#" alt="Image Preview" style="display: none; max-width: 50%; height: auto; margin-top: 10px;">
-                                        <div id="crop-container" style="width: 100%; max-height: 70vh; overflow: hidden; display: none;">
-                                            <img id="crop-image" src="#" alt="Crop Image" style="max-width: 50%; height: auto;">
-                                        </div>
-                                        <button type="button" class="btn btn-outline-secondary mt-2" id="crop-button" style="display: none;">Crop Image</button>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-outline-primary">Bayar Angsuran</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+            <div class="col-lg-4">
+                <div class="bg-light rounded h-100 p-4 border-start border-info border-4 shadow-sm">
+                    <h5 class="mb-3 text-info"><i class="fas fa-lightbulb"></i> Rekomendasi Sistem</h5>
+                    <p class="small text-muted mb-2">Berdasarkan hasil pengecekan otomatis:</p>
+                    <ul class="small mb-3 ps-3">
+                        <li class="text-success">Riwayat pembayaran nasabah baik.</li>
+                        <li class="text-success">Plafon kas LPD mencukupi.</li>
+                    </ul>
+                    
+                    <div class="alert alert-success text-center py-2 mb-4" role="alert">
+                        <strong>LAYAK DISETUJUI</strong>
                     </div>
-                </div>
 
-
-                <!-- Modal Edit Angsuran -->
-                <div class="modal fade" id="editAngsuran" tabindex="-1" aria-labelledby="editAngsuranLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="editAngsuranLabel">Edit Angsuran</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form method="POST" action="" class="form-edit-angsuran" enctype="multipart/form-data">
-                                @csrf
-                                @method('PUT')
-                                <div class="modal-body">
-                                    <div class="form-group">
-                                        <label for="edit_jml_angsuran">Jumlah Angsuran:</label>
-                                        <input type="number" class="form-control" id="edit_jml_angsuran" name="jml_angsuran" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="edit_bunga_pinjaman">Bunga Angsuran 2%:</label>
-                                        <input type="number" class="form-control" id="edit_bunga_pinjaman" name="bunga_pinjaman" readonly>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="edit_bukti_pembayaran">Bukti Pembayaran:</label>
-                                        <input type="file" class="form-control" id="edit_bukti_pembayaran" name="bukti_pembayaran">
-                                        <img id="edit_image_preview" src="#" alt="Image Preview" style="display: none; max-width: 50%; height: auto; margin-top: 10px;">
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-success">Simpan</button>
-                                </div>
-                            </form>
+                    @if($pinjaman->status_pengajuan == 0)
+                        <hr>
+                        <p class="text-center fw-bold mb-3 small">Tindakan Ketua LPD:</p>
+                        <div class="d-grid gap-2">
+                            @can('approve_pinjaman')
+                            <a href="{{ route('terima_pengajuan', $pinjaman->pinjaman_id) }}" class="btn btn-success w-100 mb-2" onclick="return confirm('Apakah Anda yakin ingin MENYETUJUI pinjaman ini?')">
+                                <i class="fas fa-check-circle"></i> Terima Pengajuan
+                            </a>
+                            @endcan
+                            
+                            @can('tolak_pinjaman')
+                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#tolakpengajuan">
+                                <i class="fas fa-times-circle"></i> Tolak Pengajuan
+                            </button>
+                            @endcan
                         </div>
-                    </div>
+                    @endif
                 </div>
+            </div>
 
+        </div> 
+        <br>
 
+        <div class="modal fade" id="tolakpengajuan" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Keterangan Tolak Pengajuan</h1>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ route('tolak_pengajuan', ['id' => $pinjaman->pinjaman_id]) }}">
+                        @csrf
+                        <div class="modal-body">
+                            <textarea name="catatan" id="catatan" class="form-control" rows="5" placeholder="Alasan Penolakan" required></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-outline-danger">Tolak</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Daftar Angsuran -->
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Angsuran</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('angsuran.bayar', $pinjaman->pinjaman_id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="form-group mb-2">
+                                <label for="tanggal_angsuran">Tanggal Angsuran:</label>
+                                <input type="date" class="form-control" id="tanggal_angsuran" name="tanggal_angsuran" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="jml_angsuran">Jumlah Angsuran:</label>
+                                <input type="number" class="form-control" id="jml_angsuran" name="jml_angsuran" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="bunga_angsuran">Bunga Angsuran:</label>
+                                <input type="number" class="form-control" id="bunga_angsuran" name="bunga_angsuran" readonly>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="denda">Denda/Hari x 1%</label>
+                                <input type="number" class="form-control" id="denda" name="denda" readonly>
+                            </div>
+                            <input type="hidden" id="bunga_pinjam" value="{{ $pinjaman->bunga_pinjam }}">
+                            <input type="hidden" id="jatuh_tempo" value="{{ $pinjaman->jatuh_tempo }}">
+                            <div class="mb-3">
+                                <label for="bukti_pembayaran" class="form-label">Bukti Pembayaran</label>
+                                <input class="form-control form-control-sm" id="bukti_pembayaran" name="bukti_pembayaran" accept="image/*" type="file" required>
+                                @error('bukti_pembayaran')
+                                <div class="text-danger">{{ $message }}</div>
+                                @enderror
+                                <img id="image-preview" src="#" alt="Image Preview" style="display: none; max-width: 50%; height: auto; margin-top: 10px;">
+                                <div id="crop-container" style="width: 100%; max-height: 70vh; overflow: hidden; display: none;">
+                                    <img id="crop-image" src="#" alt="Crop Image" style="max-width: 50%; height: auto;">
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary mt-2" id="crop-button" style="display: none;">Crop Image</button>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-outline-primary">Bayar Angsuran</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5>Daftar Angsuran</h5>
+        <div class="modal fade" id="editAngsuran" tabindex="-1" aria-labelledby="editAngsuranLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="editAngsuranLabel">Edit Angsuran</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="" class="form-edit-angsuran" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <div class="form-group mb-2">
+                                <label for="edit_jml_angsuran">Jumlah Angsuran:</label>
+                                <input type="number" class="form-control" id="edit_jml_angsuran" name="jml_angsuran" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="edit_bunga_pinjaman">Bunga Angsuran 2%:</label>
+                                <input type="number" class="form-control" id="edit_bunga_pinjaman" name="bunga_pinjaman" readonly>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="edit_bukti_pembayaran">Bukti Pembayaran:</label>
+                                <input type="file" class="form-control" id="edit_bukti_pembayaran" name="bukti_pembayaran">
+                                <img id="edit_image_preview" src="#" alt="Image Preview" style="display: none; max-width: 50%; height: auto; margin-top: 10px;">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-5">
+            <div class="card-header bg-light">
+                <h5 class="m-0">Daftar Angsuran</h5>
             </div>
             <div class="card-body">
-                <div></div>
                 @can('angsuran-create')
-                <button type="button" class="btn btn-outline-primary rounded-pill mt-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                <button type="button" class="btn btn-outline-primary rounded-pill mt-2 mb-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                     Bayar Angsuran
                 </button>
                 @endcan
-                <table class="table table-bordered mt-3">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Kode Angsuran</th>
-                            <th>Tanggal Angsuran</th>
-                            <th>Sisa Hutang Pokok</th>
-                            <th>Bunga</th>
-                            <th>Cicilan Ke-</th>
-                            <!-- <th>Denda</th> -->
-                            <th>Status</th>
-                            <th>Total Angsuran</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($angsuran as $ang)
-                        <tr>
-                            <td>{{ $ang->kodeTransaksiAngsuran }}</td>
-                            <td>{{ tanggal_indonesia($ang->tanggal_angsuran, false) }}</td>
-                            <td>Rp {{ number_format($ang->sisa_angsuran, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($ang->bunga_pinjaman, 0, ',', '.') }}</td>
-                            <td>{{ $ang->cicilan }}</td>
-                            <!-- <td>Rp {{ number_format($ang->denda, 0, ',', '.') }}</td> -->
-                            <td>
-                                @if ($ang->status == 0)
-                                <span class="text-warning">Belum Lunas</span>
-                                @elseif ($ang->status == 1)
-                                <span class="text-success">Lunas</span>
-                                @endif
-                            </td>
-                            <td>Rp {{ number_format($ang->total_angsuran_dengan_bunga, 0, ',', '.') }}</td>
-                            <td>
-                                <!-- Edit Button -->
-                                @can('angsuran-edit')
-                                <button type="button" class="btn btn-outline-warning btn-sm m-1" data-bs-toggle="modal" data-bs-target="#editAngsuran" data-id="{{ $ang->angsuran_id }}" data-jml_angsuran="{{ $ang->jml_angsuran }}" data-bunga_pinjaman="{{ $ang->bunga_pinjaman }}" data-bukti_pembayaran="{{ $ang->bukti_pembayaran }}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                @endcan
-                                @can('angsuran-delete')
-                                <form action="{{ route('angsuran.destroy', $ang->angsuran_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="fas fa-trash-alt"></i>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered mt-2">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Kode Angsuran</th>
+                                <th>Tanggal Angsuran</th>
+                                <th>Sisa Hutang Pokok</th>
+                                <th>Bunga</th>
+                                <th>Cicilan Ke-</th>
+                                <th>Status</th>
+                                <th>Total Angsuran</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($angsuran as $ang)
+                            <tr>
+                                <td>{{ $ang->kodeTransaksiAngsuran }}</td>
+                                <td>{{ tanggal_indonesia($ang->tanggal_angsuran, false) }}</td>
+                                <td>Rp {{ number_format($ang->sisa_angsuran, 0, ',', '.') }}</td>
+                                <td>Rp {{ number_format($ang->bunga_pinjaman, 0, ',', '.') }}</td>
+                                <td>{{ $ang->cicilan }}</td>
+                                <td>
+                                    @if ($ang->status == 0)
+                                    <span class="text-warning">Belum Lunas</span>
+                                    @elseif ($ang->status == 1)
+                                    <span class="text-success">Lunas</span>
+                                    @endif
+                                </td>
+                                <td>Rp {{ number_format($ang->total_angsuran_dengan_bunga, 0, ',', '.') }}</td>
+                                <td>
+                                    @can('angsuran-edit')
+                                    <button type="button" class="btn btn-outline-warning btn-sm m-1" data-bs-toggle="modal" data-bs-target="#editAngsuran" data-id="{{ $ang->angsuran_id }}" data-jml_angsuran="{{ $ang->jml_angsuran }}" data-bunga_pinjaman="{{ $ang->bunga_pinjaman }}" data-bukti_pembayaran="{{ $ang->bukti_pembayaran }}">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                </form>
-                                @endcan
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tr>
-                        <th colspan="6">Total Angsuran</th>
-                        <th>Rp {{ number_format($total_angsuran, 0, ',', '.') }}</th>
-                    </tr>
-                </table>
-                {{ $angsuran->links() }} <!-- Pagination links -->
-            </div>
+                                    @endcan
+                                    @can('angsuran-delete')
+                                    <form action="{{ route('angsuran.destroy', $ang->angsuran_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm m-1" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="6">Total Angsuran</th>
+                                <th>Rp {{ number_format($total_angsuran, 0, ',', '.') }}</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {{ $angsuran->links() }} </div>
         </div>
 
     </div>
@@ -326,10 +344,8 @@
         });
     </script>
 
-    <!-- Bootstrap JavaScript Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script untuk menutup alert secara otomatis -->
     <script>
         // Menutup alert secara otomatis setelah 5 detik
         setTimeout(function() {

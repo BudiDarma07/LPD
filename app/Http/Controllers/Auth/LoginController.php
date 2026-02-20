@@ -5,42 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request; // <-- Jangan lupa tambahkan ini
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
-
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    // protected $redirectTo = '/home'; // <--- SAYA MATIKAN INI (DEFAULT)
-
-    /**
-     * Logika Redirect Dinamis (Ganti $redirectTo dengan function ini)
-     */
-    public function redirectTo()
-    {
-        // 1. Cek apakah user yang login punya role 'Nasabah'
-        if (auth()->user()->hasRole('Nasabah')) {
-            return '/portal-nasabah'; // Arahkan ke Panel Nasabah
-        }
-
-        // 2. Jika bukan Nasabah (Admin/Petugas), arahkan ke Dashboard Admin
-        return '/home';
-    }
 
     /**
      * Create a new controller instance.
@@ -51,5 +20,28 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
+    }
+
+    /**
+     * Logika Redirect Dinamis Setelah Berhasil Login
+     * Menggantikan redirectTo() agar bisa memberikan pesan error
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        // 1. CEK ADMIN DULU! (Prioritas Tertinggi)
+        // Sesuaikan 'Admin' dengan nama role administrator di database Anda
+        if ($user->hasRole('Admin')) { 
+            return redirect('/home');
+        }
+
+        // 2. KEMUDIAN CEK NASABAH
+        if ($user->hasRole('Nasabah')) {
+            return redirect('/portal-nasabah');
+        }
+
+        // 3. JARING PENGAMAN: Jika user tidak punya role sama sekali
+        // Jangan biarkan masuk ke /home, paksa logout dan beri pesan error!
+        Auth::logout();
+        return redirect('/login')->with('error', 'Login gagal: Akun Anda belum memiliki akses (Role) yang sah di sistem. Silakan hubungi Admin.');
     }
 }
