@@ -14,6 +14,14 @@
                     </a>
                 </div>
 
+                {{-- Alert untuk menampilkan error dari try-catch controller --}}
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show mt-3 mb-4" role="alert">
+                        <strong><i class="fa fa-exclamation-circle me-2"></i> Gagal!</strong> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 <form action="{{ route('nasabah.pinjaman.store') }}" method="POST">
                     @csrf
                     
@@ -49,13 +57,16 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="keterangan" class="form-label fw-bold">Keperluan Pinjaman</label>
+                        <label for="keterangan" class="form-label fw-bold">Keperluan Pinjaman (Opsional)</label>
                         <textarea class="form-control @error('keterangan') is-invalid @enderror" 
                             name="keterangan" id="keterangan" rows="3" 
-                            placeholder="Contoh: Untuk tambahan modal usaha warung sembako" required></textarea>
+                            placeholder="Contoh: Untuk tambahan modal usaha warung sembako"></textarea>
                         @error('keterangan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div class="form-text text-muted">
+                            Catatan ini tidak wajib diisi karena hanya sebagai informasi pengajuan.
+                        </div>
                     </div>
 
                     <div class="d-grid gap-2">
