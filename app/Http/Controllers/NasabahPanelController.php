@@ -54,13 +54,20 @@ class NasabahPanelController extends Controller
                                 ->where('status_pengajuan', '0')
                                 ->exists();
 
+        // TAMBAHAN: Ambil data pinjaman yang DITOLAK (status = 2) untuk ditampilkan pesannya
+        $pinjamanDitolak = Pinjaman::where('id_anggota', $anggota->id)
+                                ->where('status_pengajuan', '2')
+                                ->orderBy('id', 'desc') // Ambil yang paling terbaru ditolak
+                                ->first();
+
         return view('backend.nasabah.dashboard', compact(
             'anggota',
             'totalSimpanan', 
             'riwayatSimpanan', 
             'sisaTagihan', 
             'pinjamanAktif',
-            'pengajuanMenunggu'
+            'pengajuanMenunggu',
+            'pinjamanDitolak' // Pastikan ini dikirim ke view
         ));
     }
 

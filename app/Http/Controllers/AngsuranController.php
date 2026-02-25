@@ -22,9 +22,10 @@ class AngsuranController extends Controller
             ->select(
                 'angsuran.kodeTransaksiAngsuran as kode_transaksi_angsuran',
                 'pinjaman.kodeTransaksiPinjaman as kode_pinjaman',
+                'pinjaman.id as id_pinjaman', // <-- TAMBAHAN: id_pinjaman agar tidak error 404 saat klik show
                 '_anggota.name as nasabah',
                 'pinjaman.jml_pinjam as pinjaman_pokok',
-                'angsuran.sisa_pinjam as sisa_pinjam', // <-- PERBAIKAN: Menggunakan sisa_pinjam dari angsuran
+                'angsuran.sisa_pinjam as sisa_pinjam',
                 'angsuran.bunga_pinjaman as bunga',
                 'angsuran.cicilan as angsuran_ke',
                 'angsuran.status as status',

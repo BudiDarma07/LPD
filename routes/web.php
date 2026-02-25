@@ -65,7 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/pinjaman/{id}', [\App\Http\Controllers\PinjamanController::class, 'destroy'])->name('pinjaman.destroy');
     Route::get('/terima_pengajuan/{id}', [\App\Http\Controllers\PinjamanController::class, 'terimapengajuan'])->name('terima_pengajuan');
     Route::post('/tolak_pengajuan/{id}', [\App\Http\Controllers\PinjamanController::class, 'tolakPengajuan'])->name('tolak_pengajuan');
-    Route::get('angsuran/{id}', [\App\Http\Controllers\PinjamanController::class, 'showAngsuran'])->name('angsuran.show');
+    
+    // PERBAIKAN: Mengarahkan angsuran.show ke LaporanController agar mencetak PDF
+    Route::get('angsuran/{id}', [\App\Http\Controllers\LaporanController::class, 'laporanAngsuran'])->name('angsuran.show');
     
     // ROUTE BARU: Cetak PDF Detail Pinjaman
     Route::get('/pinjaman/{id}/pdf', [\App\Http\Controllers\PinjamanController::class, 'cetakPdf'])->name('pinjaman.pdf');

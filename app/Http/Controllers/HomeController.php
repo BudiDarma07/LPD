@@ -26,7 +26,12 @@ class HomeController extends Controller
     {
         $countSimpanan = DB::table('_anggota')->sum('saldo');
         $countpenarikan = DB::table('penarikan')->sum('jumlah_penarikan');
-        $countpinjaman = DB::table('pinjaman')->sum('jml_pinjam');
+        
+        // PERBAIKAN: Hanya hitung pinjaman yang Disetujui (1) atau Selesai/Lunas (3)
+        $countpinjaman = DB::table('pinjaman')
+            ->whereIn('status_pengajuan', [1, 3])
+            ->sum('jml_pinjam');
+            
         $counttotalanggota = DB::table('_anggota')->get('id')->count();
 
         //donat chart
@@ -44,8 +49,10 @@ class HomeController extends Controller
             ->groupBy('year')
             ->pluck('total', 'year')->toArray();
 
+        // PERBAIKAN GRAFIK: Tambahkan filter status_pengajuan untuk data chart
         $pinjamanData = DB::table('pinjaman')
         ->select(DB::raw('YEAR(tanggal_pinjam) as year'), DB::raw('SUM(jml_pinjam) as total'))
+        ->whereIn('status_pengajuan', [1, 3])
         ->whereIn(DB::raw('YEAR(tanggal_pinjam)'), $years)
             ->groupBy('year')
             ->pluck('total', 'year')->toArray();
@@ -80,6 +87,4 @@ class HomeController extends Controller
             'chartData'
         ));
     }
-
-  
 }

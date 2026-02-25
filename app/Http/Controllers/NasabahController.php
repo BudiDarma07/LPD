@@ -10,29 +10,28 @@ use Illuminate\Support\Facades\DB;
 
 class NasabahController extends Controller
 {
-   public function index()
-{
-    // Ambil data nasabah dengan paginasi
-    $nasabah = DB::table('_anggota')->paginate(5);
+    public function index()
+    {
+        // Ambil data nasabah dengan paginasi
+        $nasabah = DB::table('_anggota')->paginate(5);
 
-    // Iterasi melalui setiap nasabah untuk memeriksa saldo mereka
-    foreach ($nasabah as $nasabahItem) {
-        if ($nasabahItem->saldo == 0) {
-            // Update status_anggota menjadi non-aktif (0) jika saldo 0
-            DB::table('_anggota')
-                ->where('id', $nasabahItem->id)
-                ->update(['status_anggota' => 0]);
+        // Iterasi melalui setiap nasabah untuk memeriksa saldo mereka
+        foreach ($nasabah as $nasabahItem) {
+            if ($nasabahItem->saldo == 0) {
+                // Update status_anggota menjadi non-aktif (0) jika saldo 0
+                DB::table('_anggota')
+                    ->where('id', $nasabahItem->id)
+                    ->update(['status_anggota' => 0]);
+            }
         }
-    }
 
-    return view('backend.nasabah.index', compact('nasabah'));
-}
+        return view('backend.nasabah.index', compact('nasabah'));
+    }
 
     public function create()
     {
         return view('backend.nasabah.create');
     }
-
 
     public function store(NasabahRequest $request)
     {
@@ -54,6 +53,10 @@ class NasabahController extends Controller
                 'image' => $imageName, // Make sure the image storage is configured properly
                 'created_at' => \Carbon\Carbon::now(),
             ]);
+
+            // TAMBAHAN PENTING: Berikan role 'Nasabah' ke user yang baru dibuat
+            // Pastikan role 'Nasabah' sudah dibuat di database (melalui route /setup-nasabah-role)
+            $user->assignRole('Nasabah');
 
             // Determine status based on saldo
             $saldo = 0;
@@ -103,7 +106,6 @@ class NasabahController extends Controller
 
         return view('backend.nasabah.edit', compact('nasabah', 'user'));
     }
-
 
     public function update(Request $request, $id)
     {
@@ -157,6 +159,7 @@ class NasabahController extends Controller
             return redirect()->route('nasabah')->with('error', 'Gagal mengupdate data: ' . $e->getMessage());
         }
     }
+    
     public function show($id)
     {
         try {
@@ -193,6 +196,7 @@ class NasabahController extends Controller
             return redirect()->route('nasabah')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
+    
     public function destroy($id)
     {
         try {

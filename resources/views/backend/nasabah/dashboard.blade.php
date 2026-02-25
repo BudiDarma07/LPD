@@ -62,6 +62,26 @@
                         <i class="fa fa-info-circle me-2"></i> Anda memiliki pinjaman yang sedang berjalan. Silakan lunasi tagihan saat ini sebelum dapat mengajukan pinjaman baru.
                     </div>
                 @else
+                    
+                    {{-- Blok Peringatan Jika Pinjaman Terakhir Ditolak --}}
+                    @if(isset($pinjamanDitolak) && $pinjamanDitolak)
+                        <div class="alert alert-danger text-start mb-4">
+                            <h6 class="alert-heading fw-bold mb-2"><i class="fa fa-times-circle me-2"></i>Pengajuan Pinjaman Sebelumnya Ditolak</h6>
+                            <p class="mb-1 text-dark"><strong>Kode Pengajuan:</strong> {{ $pinjamanDitolak->kodeTransaksiPinjaman }}</p>
+                            <p class="mb-0 text-dark"><strong>Alasan:</strong> 
+                                @php
+                                    $catatan = json_decode($pinjamanDitolak->keterangan_ditolak_pengajuan, true);
+                                @endphp
+                                
+                                @if(is_array($catatan) && count($catatan) > 0)
+                                    {{ end($catatan) }}
+                                @else
+                                    {{ $pinjamanDitolak->keterangan_ditolak_pengajuan ?: 'Tidak ada keterangan spesifik dari Admin.' }}
+                                @endif
+                            </p>
+                        </div>
+                    @endif
+
                     <h5 class="mb-3">Butuh Dana Tambahan?</h5>
                     <a href="{{ route('nasabah.pinjaman.create') }}" class="btn btn-primary py-2 px-4 fw-bold">
                         <i class="fa fa-plus-circle me-2"></i> Ajukan Pinjaman Sekarang
