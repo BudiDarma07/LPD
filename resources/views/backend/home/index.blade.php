@@ -50,8 +50,8 @@
     <div class="row g-4">
         <div class="col-sm-12 col-xl-8">
             <div class="bg-light rounded h-100 p-4">
-                <h6 class="mb-4">Transaksi Koperasi Simpan Pinjam</h6>
-                <canvas id="transaksiKoperasi" width="608" height="302" style="display: block; box-sizing: border-box; height: 223.704px; width: 450.37px;"></canvas>
+                <h6 class="mb-4">Transaksi Simpan Pinjam</h6>
+                <canvas id="transaksiLPD" width="608" height="302" style="display: block; box-sizing: border-box; height: 223.704px; width: 450.37px;"></canvas>
             </div>
         </div>
 
@@ -98,7 +98,7 @@
     var penarikanData = @json($chartData['penarikan']);
 
     // Membuat Bar Chart untuk Transaksi
-    var ctx1 = document.getElementById("transaksiKoperasi").getContext("2d");
+    var ctx1 = document.getElementById("transaksiLPD").getContext("2d");
     var myChart1 = new Chart(ctx1, {
         type: "bar",
         data: {

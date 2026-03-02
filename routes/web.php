@@ -115,7 +115,8 @@ Route::middleware('auth')->group(function () {
         
         // Dashboard Nasabah (Lihat Saldo & Tagihan)
         Route::get('/portal-nasabah', [NasabahPanelController::class, 'index'])->name('nasabah.dashboard');
-        
+        Route::get('/nasabah/simpanan/create', [App\Http\Controllers\NasabahPanelController::class, 'createSimpanan'])->name('nasabah.simpanan.create');
+Route::post('/nasabah/simpanan/store', [App\Http\Controllers\NasabahPanelController::class, 'storeSimpanan'])->name('nasabah.simpanan.store');
         // Halaman Form Ajukan Pinjaman
         Route::get('/portal-nasabah/ajukan', [NasabahPanelController::class, 'createPinjaman'])->name('nasabah.pinjaman.create');
         

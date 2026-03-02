@@ -53,40 +53,52 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="bg-light rounded p-4 text-center shadow-sm">
+                
+                {{-- Pemberitahuan Jika Ada Pengajuan Menunggu --}}
                 @if(isset($pengajuanMenunggu) && $pengajuanMenunggu)
-                    <div class="alert alert-warning mb-0 text-start">
-                        <i class="fa fa-clock me-2"></i> Pengajuan pinjaman Anda saat ini sedang <strong>diproses</strong> oleh Admin/Ketua LPD. Mohon menunggu persetujuan.
+                    <div class="alert alert-warning mb-4 text-start">
+                        <i class="fa fa-clock me-2"></i> Pengajuan pinjaman Anda sebelumnya saat ini sedang <strong>diproses</strong> oleh Admin/Ketua LPD. Mohon menunggu persetujuan.
                     </div>
-                @elseif(isset($pinjamanAktif) && $pinjamanAktif)
-                    <div class="alert alert-info mb-0 text-start">
-                        <i class="fa fa-info-circle me-2"></i> Anda memiliki pinjaman yang sedang berjalan. Silakan lunasi tagihan saat ini sebelum dapat mengajukan pinjaman baru.
-                    </div>
-                @else
-                    
-                    {{-- Blok Peringatan Jika Pinjaman Terakhir Ditolak --}}
-                    @if(isset($pinjamanDitolak) && $pinjamanDitolak)
-                        <div class="alert alert-danger text-start mb-4">
-                            <h6 class="alert-heading fw-bold mb-2"><i class="fa fa-times-circle me-2"></i>Pengajuan Pinjaman Sebelumnya Ditolak</h6>
-                            <p class="mb-1 text-dark"><strong>Kode Pengajuan:</strong> {{ $pinjamanDitolak->kodeTransaksiPinjaman }}</p>
-                            <p class="mb-0 text-dark"><strong>Alasan:</strong> 
-                                @php
-                                    $catatan = json_decode($pinjamanDitolak->keterangan_ditolak_pengajuan, true);
-                                @endphp
-                                
-                                @if(is_array($catatan) && count($catatan) > 0)
-                                    {{ end($catatan) }}
-                                @else
-                                    {{ $pinjamanDitolak->keterangan_ditolak_pengajuan ?: 'Tidak ada keterangan spesifik dari Admin.' }}
-                                @endif
-                            </p>
-                        </div>
-                    @endif
-
-                    <h5 class="mb-3">Butuh Dana Tambahan?</h5>
-                    <a href="{{ route('nasabah.pinjaman.create') }}" class="btn btn-primary py-2 px-4 fw-bold">
-                        <i class="fa fa-plus-circle me-2"></i> Ajukan Pinjaman Sekarang
-                    </a>
                 @endif
+
+                {{-- Pemberitahuan Jika Ada Pinjaman Berjalan --}}
+                @if(isset($pinjamanAktif) && $pinjamanAktif)
+                    <div class="alert alert-info mb-4 text-start">
+                        <i class="fa fa-info-circle me-2"></i> Anda memiliki pinjaman yang sedang berjalan.
+                    </div>
+                @endif
+                    
+                {{-- Blok Peringatan Jika Pinjaman Terakhir Ditolak --}}
+                @if(isset($pinjamanDitolak) && $pinjamanDitolak)
+                    <div class="alert alert-danger text-start mb-4">
+                        <h6 class="alert-heading fw-bold mb-2"><i class="fa fa-times-circle me-2"></i>Pengajuan Pinjaman Sebelumnya Ditolak</h6>
+                        <p class="mb-1 text-dark"><strong>Kode Pengajuan:</strong> {{ $pinjamanDitolak->kodeTransaksiPinjaman }}</p>
+                        <p class="mb-0 text-dark"><strong>Alasan:</strong> 
+                            @php
+                                $catatan = json_decode($pinjamanDitolak->keterangan_ditolak_pengajuan, true);
+                            @endphp
+                            
+                            @if(is_array($catatan) && count($catatan) > 0)
+                                {{ end($catatan) }}
+                            @else
+                                {{ $pinjamanDitolak->keterangan_ditolak_pengajuan ?: 'Tidak ada keterangan spesifik dari Admin.' }}
+                            @endif
+                        </p>
+                    </div>
+                @endif
+
+                {{-- Tombol Layanan Nasabah Selalu Muncul --}}
+                <h5 class="mb-3">Layanan Nasabah</h5>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{{ route('nasabah.simpanan.create') }}" class="btn btn-success py-2 px-4 fw-bold">
+                        <i class="fa fa-wallet me-2"></i> Setor Simpanan (Nabung)
+                    </a>
+                    
+                    <a href="{{ route('nasabah.pinjaman.create') }}" class="btn btn-primary py-2 px-4 fw-bold">
+                        <i class="fa fa-hand-holding-usd me-2"></i> Ajukan Pinjaman
+                    </a>
+                </div>
+                
             </div>
         </div>
     </div>

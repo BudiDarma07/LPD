@@ -112,6 +112,10 @@ class PinjamanController extends Controller
             'bunga_pinjam.max' => 'Bunga Pinjam harus lebih kecil atau sama dengan 100.',
         ]);
 
+        /* =========================================================================
+           KODE DI BAWAH INI DINONAKTIFKAN AGAR NASABAH BISA PINJAM BERKALI-KALI
+           MESKIPUN PINJAMAN SEBELUMNYA BELUM LUNAS
+           =========================================================================
         // Cek apakah ada pengajuan dengan status selain 3 untuk anggota tersebut
         $pendingPengajuan = DB::table('pinjaman')
         ->where('id_anggota', $request->id_anggota)
@@ -121,6 +125,7 @@ class PinjamanController extends Controller
         if ($pendingPengajuan) {
             return redirect()->route('pinjaman')->with('error', 'Anda tidak dapat membuat pinjaman baru karena ada pinjaman yang belum selesai.');
         }
+        ========================================================================== */
 
         $totalSaldo = DB::table('_anggota')->sum('saldo');
         $maxPinjaman = $totalSaldo * 0.9;

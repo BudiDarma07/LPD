@@ -83,6 +83,9 @@ class NasabahPanelController extends Controller
             return redirect()->route('nasabah.dashboard')->with('error', 'Data anggota tidak valid.');
         }
         
+        /* ====================================================================
+           KODE DI BAWAH INI DINONAKTIFKAN AGAR NASABAH BISA PINJAM BERKALI-KALI
+           ====================================================================
         $cekPinjaman = Pinjaman::where('id_anggota', $anggota->id)
                         ->whereIn('status_pengajuan', ['0', '1'])
                         ->exists();
@@ -91,6 +94,7 @@ class NasabahPanelController extends Controller
             return redirect()->route('nasabah.dashboard')
                 ->with('error', 'Anda masih memiliki pinjaman aktif atau pengajuan yang sedang diproses.');
         }
+        ==================================================================== */
 
         $totalSimpanan = Simpanan::where('id_anggota', $anggota->id)->sum('jml_simpanan');
 
@@ -152,6 +156,101 @@ class NasabahPanelController extends Controller
         } catch (\Exception $e) {
             // Jika error, akan kembali ke form dan memunculkan pesan gagal di layar
             return redirect()->back()->with('error', 'Gagal mengajukan pinjaman: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menampilkan Form Setor Simpanan
+     */
+    public function createSimpanan()
+    {
+        $userId = Auth::id();
+        $anggota = DB::table('_anggota')->where('user_id', $userId)->first();
+
+        if (!$anggota) {
+            return redirect()->route('nasabah.dashboard')->with('error', 'Data anggota tidak valid.');
+        }
+
+        $jenisSimpanan = DB::table('jenis_simpanan')->get();
+
+        return view('backend.nasabah.create_simpanan', compact('jenisSimpanan', 'anggota'));
+    }
+
+    /**
+     * Proses Simpan Data Simpanan Nasabah
+     */
+    public function storeSimpanan(Request $request)
+    {
+        $userId = Auth::id();
+        $anggota = DB::table('_anggota')->where('user_id', $userId)->first();
+
+        $request->validate([
+            'id_jenis_simpanan' => 'required|exists:jenis_simpanan,id',
+            'jml_simpanan'      => 'required|numeric|min:10000',
+            'bukti_pembayaran'  => 'required|file|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        try {
+            $jenis = DB::table('jenis_simpanan')->where('id', $request->id_jenis_simpanan)->first();
+            $jml_simpanan = $request->jml_simpanan;
+
+            // Validasi Aturan Nominal Simpanan Pokok & Wajib sesuai sistem Admin
+            if ($jenis->id == 1) { // Simpanan Pokok
+                $exists = DB::table('simpanan')->where('id_anggota', $anggota->id)->where('id_jenis_simpanan', 1)->exists();
+                if ($exists) {
+                    return redirect()->back()->with('error', 'Anda sudah memiliki Simpanan Pokok.');
+                }
+                $jml_simpanan = 250000;
+            } elseif ($jenis->id == 2) { // Simpanan Wajib
+                $exists = DB::table('simpanan')->where('id_anggota', $anggota->id)->where('id_jenis_simpanan', 2)->exists();
+                if ($exists) {
+                    return redirect()->back()->with('error', 'Anda sudah memiliki Simpanan Wajib.');
+                }
+                $jml_simpanan = 20000;
+            }
+
+            // Upload Bukti Pembayaran
+            $image = $request->file('bukti_pembayaran');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('assets/img'), $imageName);
+
+            // Buat Kode Transaksi
+            $lastTransaction = DB::table('simpanan')->where('kodeTransaksiSimpanan', 'LIKE', 'SMP-%')->orderBy('id', 'desc')->first();
+            $newTransactionNumber = $lastTransaction ? (int) substr($lastTransaction->kodeTransaksiSimpanan, 4) + 1 : 1;
+            $kodeTransaksi = 'SMP-' . str_pad($newTransactionNumber, 4, '0', STR_PAD_LEFT);
+
+            // Eksekusi Database
+            DB::transaction(function () use ($request, $anggota, $kodeTransaksi, $jml_simpanan, $imageName) {
+                DB::table('simpanan')->insert([
+                    'kodeTransaksiSimpanan' => $kodeTransaksi,
+                    'tanggal_simpanan'      => now()->format('Y-m-d'),
+                    'id_anggota'            => $anggota->id,
+                    'id_jenis_simpanan'     => $request->id_jenis_simpanan,
+                    'jml_simpanan'          => $jml_simpanan,
+                    'bukti_pembayaran'      => 'assets/img/' . $imageName,
+                    'created_by'            => Auth::id(),
+                    'updated_by'            => Auth::id(),
+                    'created_at'            => now(),
+                    'updated_at'            => now(),
+                ]);
+
+                // Hitung dan Update Total Saldo Anggota
+                $totalSimpanan = DB::table('simpanan')->where('id_anggota', $anggota->id)->sum('jml_simpanan');
+                
+                DB::table('_anggota')->where('id', $anggota->id)->update([
+                    'saldo' => $totalSimpanan,
+                    'status_anggota' => $totalSimpanan > 0 ? 1 : 0,
+                ]);
+
+                DB::table('total_saldo_anggota')->updateOrInsert(
+                    [],
+                    ['gradesaldo' => $totalSimpanan, 'updated_at' => now()]
+                );
+            });
+
+            return redirect()->route('nasabah.dashboard')->with('success', 'Setoran simpanan berhasil! Saldo Anda telah bertambah.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memproses simpanan: ' . $e->getMessage());
         }
     }
 }
