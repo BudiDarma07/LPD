@@ -26,7 +26,7 @@ class SimpananRequest extends FormRequest
             'tanggal_simpanan' => 'required|date',
             'id_anggota' => 'required|exists:_anggota,id',
             'id_jenis_simpanan' => 'required|exists:jenis_simpanan,id',
-            'jml_simpanan' => 'required|numeric|min:1',
+            'jml_simpanan' => 'required',,
             'bukti_pembayaran' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
     }

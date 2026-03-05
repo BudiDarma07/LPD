@@ -11,19 +11,6 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SimpananController extends Controller
 {
-    // public function index()
-    // {
-    //     $simpanan = DB::table('simpanan')->select(
-    //         'simpanan.*',
-    //         '_anggota.name as nama_anggota'
-    //     )
-    //         ->orderBy('_anggota.id', 'DESC')
-    //         ->join('simpanan', 'simpanan.id', '_anggota.nama_anggota')
-    //         ->paginate(5);
-
-    //     return view('backend.simpanan.index', compact('simpanan'));
-    // }
-
     public function index(Request $request)
     {
         $startDate = $request->get('start_date');
@@ -108,8 +95,9 @@ class SimpananController extends Controller
                 return redirect()->back()->withErrors(['id_jenis_simpanan' => 'Jenis simpanan tidak valid.']);
             }
 
-            // Inisialisasi variabel jumlah simpanan
-            $jml_simpanan = $request->jml_simpanan;
+            // PERBAIKAN: Bersihkan format Rupiah sebelum diproses ("Rp 50.000" -> 50000)
+            $jml_simpanan_bersih = str_replace(['Rp ', '.'], '', $request->jml_simpanan);
+            $jml_simpanan = (int) $jml_simpanan_bersih;
 
             // Jika jenis simpanan adalah simpanan pokok (ID 1)
             if ($jenisSimpanan->id == 1) {
@@ -194,7 +182,7 @@ class SimpananController extends Controller
                     'tanggal_simpanan' => $request->tanggal_simpanan,
                     'id_anggota' => $request->id_anggota,
                     'id_jenis_simpanan' => $request->id_jenis_simpanan,
-                    'jml_simpanan' => $jml_simpanan,
+                    'jml_simpanan' => $jml_simpanan, // Menyimpan nilai yang sudah bersih dari format Rp
                     'bukti_pembayaran' => 'assets/img/' . $imageName,
                     'created_by' => auth()->id(),
                     'updated_by' => auth()->id(),
@@ -226,7 +214,6 @@ class SimpananController extends Controller
 
     public function show($id)
     {
-        // dd($id); 
         $detailSimpanan = DB::table('simpanan')
             ->select(
                 'simpanan.jml_simpanan as jmlh',
@@ -251,8 +238,6 @@ class SimpananController extends Controller
             ->where('simpanan.id', $id)
             ->first();
 
-        // dd($detailSimpanan);
-
         return view('backend.simpanan.show', compact('detailSimpanan'));
     }
 
@@ -272,19 +257,23 @@ class SimpananController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validasi input
+        // Validasi input (PERBAIKAN: Hapus numeric pada jml_simpanan)
         $request->validate([
             'id_anggota' => 'required|exists:_anggota,id',
             'id_jenis_simpanan' => 'required|exists:jenis_simpanan,id',
-            'jml_simpanan' => 'required|numeric',
+            'jml_simpanan' => 'required', 
             'bukti_pembayaran' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
+
+        // PERBAIKAN: Bersihkan format Rupiah sebelum diproses ("Rp 50.000" -> 50000)
+        $jml_simpanan_bersih = str_replace(['Rp ', '.'], '', $request->jml_simpanan);
+        $jml_simpanan_bersih = (int) $jml_simpanan_bersih;
 
         // Data untuk diperbarui
         $data = [
             'id_anggota' => $request->id_anggota,
             'id_jenis_simpanan' => $request->id_jenis_simpanan,
-            'jml_simpanan' => $request->jml_simpanan,
+            'jml_simpanan' => $jml_simpanan_bersih, // Menyimpan nilai yang sudah bersih
             'updated_by' => auth()->user()->id,
             'updated_at' => now(),
         ];

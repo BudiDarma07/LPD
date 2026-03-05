@@ -52,24 +52,29 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            
+            // EMAIL: Ditambahkan unique:users,email
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             
-            // --- PERBAIKAN DI SINI ---
-            // 'unique:_anggota,nik' artinya cek keunikan di tabel '_anggota' pada kolom 'nik'
+            // NIK: Harus angka, tepat 16 digit, dan tidak boleh sama (unik) di tabel _anggota
             'nik' => ['required', 'numeric', 'digits:16', 'unique:_anggota,nik'], 
             
-            // Validasi No HP (08xx atau 62xx, 10-13 digit)
-            'telphone' => ['required', 'numeric', 'digits_between:10,13', 'starts_with:08,62'],
+            // NOMOR HP: Harus angka, min 10 max 12 digit, diawali 08/62, dan tidak boleh sama (unik)
+            'telphone' => ['required', 'numeric', 'digits_between:10,12', 'starts_with:08,62', 'unique:_anggota,telphone'],
             
             'jenis_kelamin' => ['required', 'string', 'in:Laki-laki,Perempuan'],
             'pekerjaan' => ['required', 'string', 'max:100'],
 
         ], [
-            // Pesan Error Custom (Opsional)
-            'nik.unique' => 'NIK ini sudah terdaftar di sistem.',
-            'nik.digits' => 'NIK harus berjumlah 16 digit.',
-            'telphone.starts_with' => 'Nomor HP harus diawali 08 atau 62.',
+            // Pesan Error Kustom agar lebih mudah dipahami User
+            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain.',
+            'nik.unique' => 'NIK ini sudah terdaftar di sistem kami.',
+            'nik.digits' => 'NIK harus berjumlah persis 16 digit angka.',
+            'telphone.unique' => 'Nomor HP ini sudah terdaftar.',
+            'telphone.digits_between' => 'Nomor HP minimal 10 digit dan maksimal 12 digit.',
+            'telphone.starts_with' => 'Nomor HP harus diawali dengan 08 atau 62.',
         ]);
     }
 
@@ -93,13 +98,10 @@ class RegisterController extends Controller
             $user->assignRole('Nasabah');
 
             // 3. Simpan ke tabel _anggota
-            // PERBAIKAN: Gunakan nama kolom 'nik' sesuai database
             DB::table('_anggota')->insert([
                 'user_id' => $user->id,
                 'name' => $data['name'],
-                
                 'nik' => $data['nik'], 
-                
                 'telphone' => $data['telphone'], 
                 'jenis_kelamin' => $data['jenis_kelamin'],
                 'pekerjaan' => $data['pekerjaan'],

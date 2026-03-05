@@ -93,7 +93,7 @@ class PinjamanController extends Controller
     {
         $request->validate([
             'tanggal_pinjam' => 'required|date',
-            'jml_pinjam' => 'required|numeric',
+            'jml_pinjam' => 'required', // PERBAIKAN: Hapus numeric
             'jml_cicilan' => 'required|numeric',
             'id_anggota' => 'required|exists:_anggota,id',
             'bunga_pinjam' => 'required|numeric|min:0|max:100',
@@ -101,7 +101,6 @@ class PinjamanController extends Controller
             'tanggal_pinjam.required' => 'Tanggal Pinjam harus diisi.',
             'tanggal_pinjam.date' => 'Tanggal Pinjam harus berupa tanggal yang valid.',
             'jml_pinjam.required' => 'Jumlah Pinjam harus diisi.',
-            'jml_pinjam.numeric' => 'Jumlah Pinjam harus berupa angka.',
             'jml_cicilan.required' => 'Jumlah Cicilan harus diisi.',
             'jml_cicilan.numeric' => 'Jumlah Cicilan harus berupa angka.',
             'id_anggota.required' => 'Anggota harus dipilih.',
@@ -112,27 +111,16 @@ class PinjamanController extends Controller
             'bunga_pinjam.max' => 'Bunga Pinjam harus lebih kecil atau sama dengan 100.',
         ]);
 
-        /* =========================================================================
-           KODE DI BAWAH INI DINONAKTIFKAN AGAR NASABAH BISA PINJAM BERKALI-KALI
-           MESKIPUN PINJAMAN SEBELUMNYA BELUM LUNAS
-           =========================================================================
-        // Cek apakah ada pengajuan dengan status selain 3 untuk anggota tersebut
-        $pendingPengajuan = DB::table('pinjaman')
-        ->where('id_anggota', $request->id_anggota)
-            ->where('status_pengajuan', '<>', 3)
-            ->exists();
-
-        if ($pendingPengajuan) {
-            return redirect()->route('pinjaman')->with('error', 'Anda tidak dapat membuat pinjaman baru karena ada pinjaman yang belum selesai.');
-        }
-        ========================================================================== */
+        // PERBAIKAN: Bersihkan Format Rupiah ("Rp 200.000" -> 200000)
+        $jml_pinjam_bersih = str_replace(['Rp ', '.'], '', $request->jml_pinjam);
+        $jml_pinjam_bersih = (int) $jml_pinjam_bersih;
 
         $totalSaldo = DB::table('_anggota')->sum('saldo');
         $maxPinjaman = $totalSaldo * 0.9;
         $totalPinjamanSebelumnya = DB::table('pinjaman')->sum('jml_pinjam');
         $maxPinjamanBaru = $maxPinjaman - $totalPinjamanSebelumnya;
 
-        if ($request->jml_pinjam > $maxPinjamanBaru) {
+        if ($jml_pinjam_bersih > $maxPinjamanBaru) {
             return redirect()->route('pinjaman')->with('error', 'Jumlah pinjaman melebihi batas maksimum');
         }
 
@@ -148,7 +136,7 @@ class PinjamanController extends Controller
             'kodeTransaksiPinjaman' => $kodeTransaksiPinjaman,
             'tanggal_pinjam' => $request->tanggal_pinjam,
             'jatuh_tempo' => $jatuhTempo,
-            'jml_pinjam' => $request->jml_pinjam,
+            'jml_pinjam' => $jml_pinjam_bersih, // Gunakan angka yang sudah dibersihkan
             'bunga_pinjam' => $request->bunga_pinjam,
             'jml_cicilan' => $request->jml_cicilan,
             'status_pengajuan' => 0,
@@ -168,20 +156,26 @@ class PinjamanController extends Controller
     {
         // Validasi data input
         $request->validate([
-            'jml_pinjam' => 'required|numeric',
+            'jml_pinjam' => 'required', // PERBAIKAN: Hapus numeric
             'jml_cicilan' => 'required|numeric',
             'jatuh_tempo' => 'required|date'
         ]);
+        
         // Fetch the current pinjaman record to check status_pengajuan
         $pinjaman = DB::table('pinjaman')->where('id', $id)->first();
         if ($pinjaman && $pinjaman->status_pengajuan != 0) {
             return redirect()->route('pinjaman')->with('error', 'tidak bisa update pinjaman karena status tidak valid');
         }
+
+        // PERBAIKAN: Bersihkan Format Rupiah
+        $jml_pinjam_bersih = str_replace(['Rp ', '.'], '', $request->input('jml_pinjam'));
+        $jml_pinjam_bersih = (int) $jml_pinjam_bersih;
+
         // Update data pinjaman menggunakan Query Builder
         DB::table('pinjaman')
             ->where('id', $id)
             ->update([
-                'jml_pinjam' => $request->input('jml_pinjam'),
+                'jml_pinjam' => $jml_pinjam_bersih, // Gunakan angka yang sudah dibersihkan
                 'jml_cicilan' => $request->input('jml_cicilan'),
                 'jatuh_tempo' => $request->input('jatuh_tempo'),
                 'updated_at' => now(),

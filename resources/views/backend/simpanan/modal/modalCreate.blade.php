@@ -1,5 +1,4 @@
- <!-- create pinjaman -->
- <div class="modal fade" id="buatSimpanan" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="buatSimpanan" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
      <div class="modal-dialog">
          <div class="modal-content">
              <div class="modal-header">
@@ -19,27 +18,27 @@
                          <label for="tanggal_simpanan">Tanggal Simpanan</label>
                      </div>
                      <div class="form-floating mb-3">
-                         <select id="id_anggota" name="id_anggota" class="form-select">
+                         <select id="id_anggota_modal" name="id_anggota" class="form-select">
                              <option value="" selected disabled>Pilih Anggota</option>
                              @foreach($namaNasabah as $nasabah)
                              <option value="{{ $nasabah->id }}" {{ old('id_anggota') == $nasabah->id ? 'selected' : '' }}>{{ $nasabah->name }}</option>
                              @endforeach
                          </select>
-                         <label for="id_anggota">Nama Anggota</label>
+                         <label for="id_anggota_modal">Nama Anggota</label>
                      </div>
                      <div class="form-floating mb-3">
-                         <select id="id_jenis_simpanan" name="id_jenis_simpanan" class="form-select">
+                         <select id="id_jenis_simpanan_modal" name="id_jenis_simpanan" class="form-select">
                              <option value="" selected disabled>Pilih Jenis Simpanan</option>
                              @foreach($jenisSimpanan as $jenis)
                              <option value="{{ $jenis->id }}" data-nominal="{{ $jenis->id == 1 ? 250000 : ($jenis->id == 2 ? 20000 : 0) }}" {{ old('id_jenis_simpanan') == $jenis->id ? 'selected' : '' }}>{{ $jenis->nama }}</option>
                              @endforeach
                          </select>
-                         <label for="id_jenis_simpanan">Jenis Simpanan</label>
+                         <label for="id_jenis_simpanan_modal">Jenis Simpanan</label>
 
                      </div>
                      <div class="form-floating mb-3">
-                         <input type="number" class="form-control" value="{{ old('jml_simpanan') }}" id="jml_simpanan" name="jml_simpanan">
-                         <label for="jml_simpanan">Jumlah Simpanan</label>
+                         <input type="text" class="form-control rupiah-input-modal" value="{{ old('jml_simpanan') }}" id="jml_simpanan_modal" name="jml_simpanan">
+                         <label for="jml_simpanan_modal">Jumlah Simpanan</label>
                      </div>
 
                      <div class="mb-3">
@@ -64,26 +63,51 @@
          </div>
      </div>
  </div>
- <script>
-     document.addEventListener('DOMContentLoaded', function() {
-         var jenisSimpanan = document.getElementById('id_jenis_simpanan');
-         var jmlSimpananInput = document.getElementById('jml_simpanan');
 
-         // Cek nilai awal saat halaman dimuat
-         var selectedOption = jenisSimpanan.options[jenisSimpanan.selectedIndex];
-         if (selectedOption) {
-             var nominalDefault = selectedOption.getAttribute('data-nominal');
-             jmlSimpananInput.value = nominalDefault;
-             jmlSimpananInput.readOnly = (nominalDefault !== '0'); // Set read-only jika ada nominal default
+ <script>
+     function formatRupiahModal(angka, prefix) {
+        var number_string = angka.toString().replace(/[^,\d]/g, ''),
+            split         = number_string.split(','),
+            sisa          = split[0].length % 3,
+            rupiah        = split[0].substr(0, sisa),
+            ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+    }
+
+    var rupiahInputsModalSimpanan = document.querySelectorAll('.rupiah-input-modal');
+    rupiahInputsModalSimpanan.forEach(function(input) {
+        input.addEventListener('keyup', function(e) {
+            this.value = formatRupiahModal(this.value, 'Rp ');
+        });
+    });
+
+     document.addEventListener('DOMContentLoaded', function() {
+         var jenisSimpananModal = document.getElementById('id_jenis_simpanan_modal');
+         var jmlSimpananInputModal = document.getElementById('jml_simpanan_modal');
+
+         function adjustNominalModal() {
+             var selectedOption = jenisSimpananModal.options[jenisSimpananModal.selectedIndex];
+             if (selectedOption) {
+                 var nominalDefault = selectedOption.getAttribute('data-nominal');
+                 if(nominalDefault !== '0') {
+                     jmlSimpananInputModal.value = formatRupiahModal(nominalDefault, 'Rp ');
+                     jmlSimpananInputModal.readOnly = true;
+                 } else {
+                     jmlSimpananInputModal.value = '';
+                     jmlSimpananInputModal.readOnly = false;
+                 }
+             }
          }
 
-         // Event untuk mengatur nilai saat pilihan jenis simpanan berubah
-         jenisSimpanan.addEventListener('change', function() {
-             var selectedOption = jenisSimpanan.options[jenisSimpanan.selectedIndex];
-             var nominalDefault = selectedOption.getAttribute('data-nominal');
-             jmlSimpananInput.value = nominalDefault;
-             jmlSimpananInput.readOnly = (nominalDefault !== '0'); // Set read-only jika ada nominal default
-         });
+         adjustNominalModal();
+         jenisSimpananModal.addEventListener('change', adjustNominalModal);
      });
  </script>
  <script>

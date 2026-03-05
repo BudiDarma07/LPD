@@ -158,12 +158,20 @@
             </div>
 
             <div class="card-body-custom">
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                        <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 @if (session('status'))
                     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                         {{ session('status') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+
                 @if($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                         <i class="fa fa-exclamation-circle me-2"></i>Login Gagal. Cek email & password.
@@ -203,8 +211,8 @@
                                 Ingat Saya
                             </label>
                         </div>
-                        @if (Route::has('password.request'))
-                            <a class="text-primary small text-decoration-none fw-bold" href="{{ route('password.request') }}">
+                        @if (Route::has('password.custom.request'))
+                            <a class="text-primary small text-decoration-none fw-bold" href="{{ route('password.custom.request') }}">
                                 Lupa Password?
                             </a>
                         @endif

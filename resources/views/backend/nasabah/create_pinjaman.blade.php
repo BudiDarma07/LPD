@@ -29,9 +29,9 @@
                         <label for="jumlah_pinjaman" class="form-label fw-bold">Jumlah Pinjaman (Rp)</label>
                         <div class="input-group">
                             <span class="input-group-text">Rp</span>
-                            <input type="number" class="form-control @error('jumlah_pinjaman') is-invalid @enderror" 
+                            <input type="text" class="form-control rupiah-input @error('jumlah_pinjaman') is-invalid @enderror" 
                                 id="jumlah_pinjaman" name="jumlah_pinjaman" 
-                                placeholder="Contoh: 200000" min="200000" max="{{ $totalSimpanan }}" required>
+                                placeholder="Contoh: Rp 200.000" required>
                         </div>
                         <div class="form-text text-muted">
                             Minimal pengajuan Rp 200.000. Maksimal pengajuan Rp {{ number_format($totalSimpanan, 0, ',', '.') }}.
@@ -79,4 +79,31 @@
         </div>
     </div>
 </div>
+
+<script>
+// Fungsi Format Rupiah untuk Input Manual
+var rupiahInputs = document.querySelectorAll('.rupiah-input');
+
+rupiahInputs.forEach(function(input) {
+    input.addEventListener('keyup', function(e) {
+        this.value = formatRupiah(this.value, 'Rp ');
+    });
+});
+
+function formatRupiah(angka, prefix) {
+    var number_string = angka.toString().replace(/[^,\d]/g, ''),
+        split         = number_string.split(','),
+        sisa          = split[0].length % 3,
+        rupiah        = split[0].substr(0, sisa),
+        ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+    return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+}
+</script>
 @endsection

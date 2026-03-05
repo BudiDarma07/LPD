@@ -82,19 +82,6 @@ class NasabahPanelController extends Controller
         if (!$anggota) {
             return redirect()->route('nasabah.dashboard')->with('error', 'Data anggota tidak valid.');
         }
-        
-        /* ====================================================================
-           KODE DI BAWAH INI DINONAKTIFKAN AGAR NASABAH BISA PINJAM BERKALI-KALI
-           ====================================================================
-        $cekPinjaman = Pinjaman::where('id_anggota', $anggota->id)
-                        ->whereIn('status_pengajuan', ['0', '1'])
-                        ->exists();
-
-        if($cekPinjaman) {
-            return redirect()->route('nasabah.dashboard')
-                ->with('error', 'Anda masih memiliki pinjaman aktif atau pengajuan yang sedang diproses.');
-        }
-        ==================================================================== */
 
         $totalSimpanan = Simpanan::where('id_anggota', $anggota->id)->sum('jml_simpanan');
 
@@ -114,15 +101,22 @@ class NasabahPanelController extends Controller
         $userId = Auth::id();
         $anggota = DB::table('_anggota')->where('user_id', $userId)->first();
 
-        // Validasi Input
         $request->validate([
-            'jumlah_pinjaman' => 'required|numeric|min:200000',
+            // Karena pakai format string Rupiah di form, hapus validasi numeric di sini
+            'jumlah_pinjaman' => 'required',
             'lama_angsuran'   => 'required|numeric', 
-        ], [
-            'jumlah_pinjaman.min' => 'Minimal pengajuan pinjaman adalah Rp 200.000.'
         ]);
 
         try {
+            // PERBAIKAN: Bersihkan format Rupiah ("Rp 200.000" -> 200000)
+            $jumlah_pinjaman_bersih = str_replace(['Rp ', '.'], '', $request->jumlah_pinjaman);
+            $jumlah_pinjaman_bersih = (int) $jumlah_pinjaman_bersih;
+
+            // Validasi manual batas minimal setelah dibersihkan formatnya
+            if ($jumlah_pinjaman_bersih < 200000) {
+                return redirect()->back()->with('error', 'Minimal pengajuan pinjaman adalah Rp 200.000.')->withInput();
+            }
+
             // Generate Kode Transaksi Otomatis seperti Admin (PNJ-0001 dst)
             $lastTransaction = DB::table('pinjaman')->orderBy('id', 'desc')->first();
             $newTransactionNumber = $lastTransaction ? (int) substr($lastTransaction->kodeTransaksiPinjaman, 4) + 1 : 1;
@@ -132,14 +126,14 @@ class NasabahPanelController extends Controller
             $tanggalPinjam = Carbon::now();
             $jatuhTempo = Carbon::now()->addMonths((int) $request->lama_angsuran);
 
-            // Simpan ke Database menggunakan Query Builder (Sesuai dengan tabel database)
+            // Simpan ke Database menggunakan Query Builder
             DB::table('pinjaman')->insert([
                 'kodeTransaksiPinjaman'        => $kodeTransaksi,
                 'id_anggota'                   => $anggota->id, 
                 'tanggal_pinjam'               => $tanggalPinjam->format('Y-m-d'),
                 'jatuh_tempo'                  => $jatuhTempo->format('Y-m-d'),
-                'jml_pinjam'                   => $request->jumlah_pinjaman,
-                'jml_cicilan'                  => $request->lama_angsuran, // Masuk ke jml_cicilan
+                'jml_pinjam'                   => $jumlah_pinjaman_bersih, // Gunakan variabel yang sudah bersih
+                'jml_cicilan'                  => $request->lama_angsuran, 
                 'status_pengajuan'             => 0,
                 'bunga_pinjam'                 => 0, 
                 'keterangan_ditolak_pengajuan' => '', 
@@ -149,13 +143,10 @@ class NasabahPanelController extends Controller
                 'updated_at'                   => Carbon::now(),
             ]);
 
-            // Catatan: Kolom 'keterangan' dihiraukan/dibuang karena tidak ada di tabel pinjaman.
-
             return redirect()->route('nasabah.dashboard')->with('success', 'Pengajuan berhasil dikirim! Menunggu persetujuan Admin.');
         
         } catch (\Exception $e) {
-            // Jika error, akan kembali ke form dan memunculkan pesan gagal di layar
-            return redirect()->back()->with('error', 'Gagal mengajukan pinjaman: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengajukan pinjaman: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -186,13 +177,22 @@ class NasabahPanelController extends Controller
 
         $request->validate([
             'id_jenis_simpanan' => 'required|exists:jenis_simpanan,id',
-            'jml_simpanan'      => 'required|numeric|min:10000',
+            // Hapus validasi numeric karena input bisa berupa string "Rp 50.000"
+            'jml_simpanan'      => 'required', 
             'bukti_pembayaran'  => 'required|file|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         try {
             $jenis = DB::table('jenis_simpanan')->where('id', $request->id_jenis_simpanan)->first();
-            $jml_simpanan = $request->jml_simpanan;
+            
+            // PERBAIKAN: Bersihkan string Rupiah ("Rp 50.000" -> 50000)
+            $jml_simpanan = str_replace(['Rp ', '.'], '', $request->jml_simpanan);
+            $jml_simpanan = (int) $jml_simpanan;
+
+            // Validasi manual batas minimal simpanan setelah dibersihkan
+            if ($jml_simpanan < 10000 && !in_array($jenis->id, [1, 2])) {
+                 return redirect()->back()->with('error', 'Setoran minimal adalah Rp 10.000.')->withInput();
+            }
 
             // Validasi Aturan Nominal Simpanan Pokok & Wajib sesuai sistem Admin
             if ($jenis->id == 1) { // Simpanan Pokok
@@ -200,7 +200,7 @@ class NasabahPanelController extends Controller
                 if ($exists) {
                     return redirect()->back()->with('error', 'Anda sudah memiliki Simpanan Pokok.');
                 }
-                $jml_simpanan = 250000;
+                $jml_simpanan = 250000; // Force override meskipun user iseng memanipulasi inspect element HTML
             } elseif ($jenis->id == 2) { // Simpanan Wajib
                 $exists = DB::table('simpanan')->where('id_anggota', $anggota->id)->where('id_jenis_simpanan', 2)->exists();
                 if ($exists) {
@@ -250,7 +250,7 @@ class NasabahPanelController extends Controller
 
             return redirect()->route('nasabah.dashboard')->with('success', 'Setoran simpanan berhasil! Saldo Anda telah bertambah.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal memproses simpanan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memproses simpanan: ' . $e->getMessage())->withInput();
         }
     }
 }

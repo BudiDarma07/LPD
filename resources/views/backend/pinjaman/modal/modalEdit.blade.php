@@ -1,4 +1,3 @@
-<!-- Edit Pinjaman Modal -->
 <div class="modal fade" id="editPinjaman" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -46,14 +45,14 @@
                     </div>
                     <div class="form-group">
                         <label for="edit_jml_pinjam">Jumlah Pinjam</label>
-                        <input type="number" class="form-control @error('jml_pinjam') is-invalid @enderror" id="edit_jml_pinjam" name="jml_pinjam" required>
+                        <input type="text" class="form-control rupiah-input-edit @error('jml_pinjam') is-invalid @enderror" id="edit_jml_pinjam" name="jml_pinjam" required>
                         @error('jml_pinjam')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
                         @enderror
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer mt-3">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-success">Simpan</button>
                     </div>
@@ -64,8 +63,33 @@
 </div>
 
 <script>
+    // Fungsi Format Rupiah untuk Modal Edit
+    function formatRupiahEdit(angka, prefix) {
+        var number_string = angka.toString().replace(/[^,\d]/g, ''),
+            split         = number_string.split(','),
+            sisa          = split[0].length % 3,
+            rupiah        = split[0].substr(0, sisa),
+            ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         var editPinjamanModal = document.getElementById('editPinjaman');
+        var editJmlPinjamInput = document.getElementById('edit_jml_pinjam');
+
+        // Saat admin mengetik di input edit, terapkan format rupiah
+        if(editJmlPinjamInput) {
+            editJmlPinjamInput.addEventListener('keyup', function(e) {
+                this.value = formatRupiahEdit(this.value, 'Rp ');
+            });
+        }
 
         editPinjamanModal.addEventListener('show.bs.modal', function(event) {
             var button = event.relatedTarget;
@@ -78,7 +102,10 @@
 
             formEdit.setAttribute('action', `/pinjaman/${id}`);
             formEdit.querySelector('#edit_tanggal_pinjam').value = tanggal_pinjam;
-            formEdit.querySelector('#edit_jml_pinjam').value = jml_pinjam;
+            
+            // PERBAIKAN: Format jml_pinjam yang diambil dari database ke dalam format Rupiah 
+            formEdit.querySelector('#edit_jml_pinjam').value = formatRupiahEdit(jml_pinjam, 'Rp ');
+            
             formEdit.querySelector('#edit_jml_cicilan').value = jml_cicilan;
             formEdit.querySelector('#edit_jatuh_tempo').value = jatuh_tempo;
 

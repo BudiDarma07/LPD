@@ -41,9 +41,8 @@
                     <div class="mb-3">
                         <label for="jml_simpanan" class="form-label fw-bold">Jumlah Setoran (Rp)</label>
                         <div class="input-group">
-                            <span class="input-group-text">Rp</span>
-                            <input type="number" class="form-control @error('jml_simpanan') is-invalid @enderror" 
-                                id="jml_simpanan" name="jml_simpanan" placeholder="Contoh: 50000" min="10000" required>
+                            <input type="text" class="form-control rupiah-input @error('jml_simpanan') is-invalid @enderror" 
+                                id="jml_simpanan" name="jml_simpanan" placeholder="Contoh: Rp 50.000" required>
                         </div>
                         <div class="form-text text-muted" id="simpanan-hint">
                             Silakan isi nominal. Jika Simpanan Pokok/Wajib, nominal akan terisi otomatis.
@@ -75,18 +74,44 @@
 </div>
 
 <script>
-// Auto-fill nominal sesuai jenis simpanan (meniru rule Admin)
+// 1. Fungsi Format Rupiah untuk Input Manual
+var rupiahInputs = document.querySelectorAll('.rupiah-input');
+
+rupiahInputs.forEach(function(input) {
+    input.addEventListener('keyup', function(e) {
+        this.value = formatRupiah(this.value, 'Rp ');
+    });
+});
+
+function formatRupiah(angka, prefix) {
+    var number_string = angka.toString().replace(/[^,\d]/g, ''),
+        split         = number_string.split(','),
+        sisa          = split[0].length % 3,
+        rupiah        = split[0].substr(0, sisa),
+        ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+    return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+}
+
+
+// 2. Auto-fill nominal sesuai jenis simpanan (ditambah format rupiah ke valuenya)
 document.getElementById('id_jenis_simpanan').addEventListener('change', function() {
     let type = this.options[this.selectedIndex].text.toLowerCase();
     let nominalInput = document.getElementById('jml_simpanan');
     let hint = document.getElementById('simpanan-hint');
     
     if(type.includes('pokok')) {
-        nominalInput.value = 250000;
+        nominalInput.value = formatRupiah("250000", "Rp "); // Langsung jadi Rp 250.000
         nominalInput.readOnly = true;
         hint.innerText = "Nominal Simpanan Pokok telah ditentukan (Rp 250.000).";
     } else if(type.includes('wajib')) {
-        nominalInput.value = 20000;
+        nominalInput.value = formatRupiah("20000", "Rp "); // Langsung jadi Rp 20.000
         nominalInput.readOnly = true;
         hint.innerText = "Nominal Simpanan Wajib telah ditentukan (Rp 20.000).";
     } else {

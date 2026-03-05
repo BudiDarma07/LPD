@@ -20,8 +20,6 @@
         <form method="POST" action="{{ route('pinjaman.store') }}">
             @csrf
 
-          
-
             <div class="form-group">
                 <label for="tanggal_pinjam">Tanggal Pinjam</label>
                 <input type="date" class="form-control @error('tanggal_pinjam') is-invalid @enderror" id="tanggal_pinjam" name="tanggal_pinjam" value="{{ old('tanggal_pinjam') }}" required>
@@ -34,7 +32,7 @@
 
             <div class="form-group">
                 <label for="jml_pinjam">Jumlah Pinjam</label>
-                <input type="number" class="form-control @error('jml_pinjam') is-invalid @enderror" id="jml_pinjam" name="jml_pinjam" value="{{ old('jml_pinjam') }}" required>
+                <input type="text" class="form-control rupiah-input @error('jml_pinjam') is-invalid @enderror" id="jml_pinjam" name="jml_pinjam" value="{{ old('jml_pinjam') }}" placeholder="Contoh: Rp 500.000" required>
                 @error('jml_pinjam')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
@@ -67,8 +65,33 @@
                 @enderror
             </div>
 
-            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="submit" class="btn btn-primary mt-3">Simpan</button>
         </form>
     </div>
 </div>
+
+<script>
+    var rupiahInputs = document.querySelectorAll('.rupiah-input');
+    rupiahInputs.forEach(function(input) {
+        input.addEventListener('keyup', function(e) {
+            this.value = formatRupiah(this.value, 'Rp ');
+        });
+    });
+
+    function formatRupiah(angka, prefix) {
+        var number_string = angka.toString().replace(/[^,\d]/g, ''),
+            split         = number_string.split(','),
+            sisa          = split[0].length % 3,
+            rupiah        = split[0].substr(0, sisa),
+            ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+    }
+</script>
 @endsection

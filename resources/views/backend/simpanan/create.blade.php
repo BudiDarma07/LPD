@@ -44,7 +44,7 @@
 
             </div>
             <div class="form-floating mb-3">
-                <input type="number" class="form-control" value="{{ old('jml_simpanan') }}" id="jml_simpanan" name="jml_simpanan">
+                <input type="text" class="form-control rupiah-input" value="{{ old('jml_simpanan') }}" id="jml_simpanan" name="jml_simpanan">
                 <label for="jml_simpanan">Jumlah Simpanan</label>
             </div>
             <div class="mb-3">
@@ -57,25 +57,56 @@
 </div>
 
 <script>
+    // FUNGSI FORMAT RUPIAH
+    function formatRupiah(angka, prefix) {
+        var number_string = angka.toString().replace(/[^,\d]/g, ''),
+            split         = number_string.split(','),
+            sisa          = split[0].length % 3,
+            rupiah        = split[0].substr(0, sisa),
+            ribuan        = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+    }
+
+    // EVENT KETIK RUPIAH
+    var rupiahInputs = document.querySelectorAll('.rupiah-input');
+    rupiahInputs.forEach(function(input) {
+        input.addEventListener('keyup', function(e) {
+            this.value = formatRupiah(this.value, 'Rp ');
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         var jenisSimpanan = document.getElementById('id_jenis_simpanan');
         var jmlSimpananInput = document.getElementById('jml_simpanan');
 
-        // Cek nilai awal saat halaman dimuat
-        var selectedOption = jenisSimpanan.options[jenisSimpanan.selectedIndex];
-        if (selectedOption) {
-            var nominalDefault = selectedOption.getAttribute('data-nominal');
-            jmlSimpananInput.value = nominalDefault;
-            jmlSimpananInput.readOnly = (nominalDefault !== '0'); // Set read-only jika ada nominal default
+        // Fungsi pembantu untuk set nilai
+        function adjustNominal() {
+            var selectedOption = jenisSimpanan.options[jenisSimpanan.selectedIndex];
+            if (selectedOption) {
+                var nominalDefault = selectedOption.getAttribute('data-nominal');
+                if(nominalDefault !== '0') {
+                    // Masukkan dengan format rupiah jika ada nilainya
+                    jmlSimpananInput.value = formatRupiah(nominalDefault, 'Rp ');
+                    jmlSimpananInput.readOnly = true;
+                } else {
+                    jmlSimpananInput.value = '';
+                    jmlSimpananInput.readOnly = false;
+                }
+            }
         }
 
+        // Cek nilai awal saat halaman dimuat
+        adjustNominal();
+
         // Event untuk mengatur nilai saat pilihan jenis simpanan berubah
-        jenisSimpanan.addEventListener('change', function() {
-            var selectedOption = jenisSimpanan.options[jenisSimpanan.selectedIndex];
-            var nominalDefault = selectedOption.getAttribute('data-nominal');
-            jmlSimpananInput.value = nominalDefault;
-            jmlSimpananInput.readOnly = (nominalDefault !== '0'); // Set read-only jika ada nominal default
-        });
+        jenisSimpanan.addEventListener('change', adjustNominal);
     });
 </script>
 @endsection

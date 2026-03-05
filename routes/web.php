@@ -4,11 +4,11 @@ use App\Http\Controllers\NasabahController;
 use App\Http\Controllers\RoleAndPermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\NasabahPanelController; // <--- TAMBAHAN 1
+use App\Http\Controllers\NasabahPanelController; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Models\Role;       // <--- TAMBAHAN UNTUK SETUP
-use Spatie\Permission\Models\Permission; // <--- TAMBAHAN UNTUK SETUP
+use Spatie\Permission\Models\Role;       
+use Spatie\Permission\Models\Permission; 
 
 /*
 |--------------------------------------------------------------------------
@@ -17,13 +17,24 @@ use Spatie\Permission\Models\Permission; // <--- TAMBAHAN UNTUK SETUP
 */
 
 Route::get('/', function () {
-    return view('auth.login');
+    return view('welcome');
 });
 
 // ROUTE AUTHENTICATION (Login, Register, dll)
 Auth::routes();
 
+// =================================================================
+// RUTE LUPA PASSWORD KUSTOM (HARUS DI SINI, DI LUAR MIDDLEWARE AUTH)
+// =================================================================
+Route::get('password/reset-akun', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'showCustomRequestForm'])->name('password.custom.request');
+Route::post('password/reset-akun', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'verifyCustomUser'])->name('password.custom.verify');
+Route::get('password/ganti-password', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'showCustomResetForm'])->name('password.custom.reset');
+Route::post('password/ganti-password', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'updateCustomPassword'])->name('password.custom.update');
+
+
+// =================================================================
 // GROUP ROUTE YANG BUTUH LOGIN
+// =================================================================
 Route::middleware('auth')->group(function () {
     
     // --- DASHBOARD ADMIN ---
@@ -116,7 +127,7 @@ Route::middleware('auth')->group(function () {
         // Dashboard Nasabah (Lihat Saldo & Tagihan)
         Route::get('/portal-nasabah', [NasabahPanelController::class, 'index'])->name('nasabah.dashboard');
         Route::get('/nasabah/simpanan/create', [App\Http\Controllers\NasabahPanelController::class, 'createSimpanan'])->name('nasabah.simpanan.create');
-Route::post('/nasabah/simpanan/store', [App\Http\Controllers\NasabahPanelController::class, 'storeSimpanan'])->name('nasabah.simpanan.store');
+        Route::post('/nasabah/simpanan/store', [App\Http\Controllers\NasabahPanelController::class, 'storeSimpanan'])->name('nasabah.simpanan.store');
         // Halaman Form Ajukan Pinjaman
         Route::get('/portal-nasabah/ajukan', [NasabahPanelController::class, 'createPinjaman'])->name('nasabah.pinjaman.create');
         
